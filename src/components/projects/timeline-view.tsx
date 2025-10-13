@@ -105,12 +105,12 @@ export function TimelineView({ project }: TimelineViewProps) {
                                 transition-all hover:scale-105 hover:shadow-lg group
                                 ${
                                   task.status === "done"
-                                    ? "bg-green-500/80"
-                                    : task.status === "in-progress"
-                                      ? "bg-yellow-500/80"
+                                    ? "bg-green-600"
+                                  : task.status === "in-progress"
+                                      ? "bg-yellow-600"
                                       : task.status === "blocked"
-                                        ? "bg-red-500/80"
-                                        : "bg-blue-500/80"
+                                        ? "bg-red-600"
+                                        : "bg-blue-600"
                                 }
                               `}
                               style={{
@@ -128,10 +128,10 @@ export function TimelineView({ project }: TimelineViewProps) {
                                       variant="outline"
                                       className={`text-xs ${
                                         task.priority === "high"
-                                          ? "border-red-500/50 text-red-500"
-                                          : task.priority === "medium"
-                                            ? "border-yellow-500/50 text-yellow-500"
-                                            : "border-green-500/50 text-green-500"
+                                          ? "border-red-500 text-red-600 bg-red-500/20 dark:text-red-400"
+                                        : task.priority === "medium"
+                                            ? "border-yellow-500 text-yellow-600 bg-yellow-500/20 dark:text-yellow-400"
+                                            : "border-green-500 text-green-600 bg-green-500/20 dark:text-green-400"
                                       }`}
                                     >
                                       {task.priority}
@@ -175,10 +175,10 @@ export function TimelineView({ project }: TimelineViewProps) {
                   w-12 h-12 rounded-full flex items-center justify-center font-bold
                   ${
                     milestone.status === "completed"
-                      ? "bg-green-500/20 text-green-500"
-                      : milestone.status === "in-progress"
-                        ? "bg-yellow-500/20 text-yellow-500"
-                        : "bg-blue-500/20 text-blue-500"
+                      ? "bg-green-500/20 text-green-600 dark:text-green-400"
+                    : milestone.status === "in-progress"
+                        ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+                        : "bg-blue-500/20 text-blue-600 dark:text-blue-400"
                   }
                 `}
               >
@@ -192,10 +192,10 @@ export function TimelineView({ project }: TimelineViewProps) {
                 variant="outline"
                 className={`${
                   milestone.status === "completed"
-                    ? "border-green-500/50 text-green-500"
+                    ? "border-green-500 text-green-600 bg-green-500/20 dark:text-green-400"
                     : milestone.status === "in-progress"
-                      ? "border-yellow-500/50 text-yellow-500"
-                      : "border-blue-500/50 text-blue-500"
+                      ? "border-yellow-500 text-yellow-600 bg-yellow-500/20 dark:text-yellow-400"
+                      : "border-blue-500 text-blue-600 bg-blue-500/20 dark:text-blue-400"
                 }`}
               >
                 {milestone.status}

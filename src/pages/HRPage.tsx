@@ -5,6 +5,10 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
+import { calculateZenithMatchScore, defaultJobRequirements } from "@/lib/zenith-matching"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Slider } from "@/components/ui/slider"
 import {
   Users,
   Star,
@@ -39,6 +43,10 @@ import {
   Lightbulb,
   Rocket,
   GraduationCap,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  UserCog,
 } from "lucide-react"
 import { AddEmployeeDialog } from "@/components/hr/add-employee-dialog"
 import { AddReviewDialog } from "@/components/hr/add-review-dialog"
@@ -117,61 +125,85 @@ const recentActivity = [
   { id: 4, text: "Employee onboarding started for Annette Black", time: "2 days ago" },
 ]
 
-// Mock data for recruitment candidates
+// Mock data for recruitment candidates - FULLY ANONYMOUS
 const mockCandidates = [
   {
     id: 1,
-    name: "John Doe",
+    candidateId: "CAND-M2K8L-4A7C",
     position: "Senior Developer",
     stage: "Applied",
     daysInStage: 2,
-    assignedTo: "Sarah Johnson",
+    assignedTo: "Recruiter A",
     appliedDate: "2025-01-08",
+    skills: "React, Node.js, TypeScript, JavaScript",
+    experience: "5-10 years",
+    education: "Bachelor's Degree",
+    certifications: "AWS Certified Developer",
   },
   {
     id: 2,
-    name: "Jane Smith",
+    candidateId: "CAND-N3J9M-5B8D",
     position: "Product Manager",
     stage: "Reviewed",
     daysInStage: 5,
-    assignedTo: "Michael Chen",
+    assignedTo: "Recruiter B",
     appliedDate: "2025-01-03",
+    skills: "Agile, Product Strategy, Roadmapping, Stakeholder Management",
+    experience: "5-10 years",
+    education: "Master's Degree",
+    certifications: "CSPO, Product Management",
   },
   {
     id: 3,
-    name: "Robert Brown",
+    candidateId: "CAND-P4K1N-6C9E",
     position: "UX Designer",
     stage: "Interviewed",
     daysInStage: 3,
-    assignedTo: "Sarah Johnson",
+    assignedTo: "Recruiter A",
     appliedDate: "2024-12-28",
+    skills: "Figma, User Research, Prototyping, Wireframing",
+    experience: "2-5 years",
+    education: "Bachelor's Degree",
+    certifications: "UX Certification",
   },
   {
     id: 4,
-    name: "Emily Davis",
+    candidateId: "CAND-Q5L2O-7D1F",
     position: "Senior Developer",
     stage: "Offered",
     daysInStage: 1,
-    assignedTo: "Michael Chen",
+    assignedTo: "Recruiter B",
     appliedDate: "2024-12-20",
+    skills: "Python, AWS, Kubernetes, Docker, CI/CD",
+    experience: "10+ years",
+    education: "Master's Degree",
+    certifications: "AWS Certified Solutions Architect, Kubernetes Certified",
   },
   {
     id: 5,
-    name: "David Wilson",
+    candidateId: "CAND-R6M3P-8E2G",
     position: "Marketing Manager",
     stage: "Applied",
     daysInStage: 1,
-    assignedTo: "Sarah Johnson",
+    assignedTo: "Recruiter A",
     appliedDate: "2025-01-09",
+    skills: "SEO, Content Strategy, Analytics, Google Analytics",
+    experience: "5-10 years",
+    education: "Bachelor's Degree",
+    certifications: "Google Analytics, HubSpot",
   },
   {
     id: 6,
-    name: "Lisa Anderson",
+    candidateId: "CAND-S7N4Q-9F3H",
     position: "Sales Representative",
     stage: "Reviewed",
     daysInStage: 4,
-    assignedTo: "Michael Chen",
+    assignedTo: "Recruiter B",
     appliedDate: "2025-01-04",
+    skills: "B2B Sales, CRM, Negotiation, Salesforce",
+    experience: "2-5 years",
+    education: "Bachelor's Degree",
+    certifications: "Salesforce Certified",
   },
 ]
 
@@ -473,6 +505,10 @@ export default function HRPage() {
   const [departmentFilter, setDepartmentFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [riskFilter, setRiskFilter] = useState("all")
+  const [showTopCandidates, setShowTopCandidates] = useState(true)
+  const [candidateStageFilter, setCandidateStageFilter] = useState("All")
+  const [editingGoal, setEditingGoal] = useState<number | null>(null)
+  const [goalProgress, setGoalProgress] = useState<number>(0)
 
   // Calculate days until/since review
   const getDaysUntilReview = (reviewDate: string) => {
@@ -543,9 +579,6 @@ export default function HRPage() {
       emp.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.department.toLowerCase().includes(searchQuery.toLowerCase()),
   )
-
-  // Featured employee (first active employee)
-  const featuredEmployee = mockEmployees.find((emp) => emp.status === "Active")
 
   // Helper function to calculate overall rating
   const calculateOverallRating = (review: (typeof mockPerformanceReviews)[0]) => {
@@ -642,9 +675,22 @@ export default function HRPage() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Human Resources</h1>
-              <p className="text-muted-foreground mt-1">ZHire - AI-Powered Human Capital Management</p>
-              <p className="text-sm text-muted-foreground mt-2">Zenith Hub &gt; Human Resources</p>
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
+                <ChevronRight className="h-4 w-4" />
+                <span className="text-foreground">Human Resources</span>
+              </div>
+              
+              {/* Title with Icon */}
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2.5 rounded-lg">
+                  <UserCog className="h-6 w-6 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold">Human Resources</h1>
+              </div>
+              
+              <p className="text-muted-foreground mt-2">ZHire - Zenith-Powered Human Capital Management</p>
             </div>
             <div className="flex gap-2">
               <AddEmployeeDialog />
@@ -669,7 +715,7 @@ export default function HRPage() {
             <TabsTrigger value="goals">Goals</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="development">Development</TabsTrigger>
-            <TabsTrigger value="insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="insights">Zenith Insights</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard">
@@ -730,8 +776,8 @@ export default function HRPage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Brain className="h-5 w-5 text-primary" />
-                      <CardTitle>AI-Powered Insights</CardTitle>
+                      <Sparkles className="h-5 w-5 text-primary" />
+                      <CardTitle>Zenith-Powered Insights</CardTitle>
                     </div>
                     <Badge variant="secondary" className="gap-1">
                       <Sparkles className="h-3 w-3" />
@@ -899,57 +945,6 @@ export default function HRPage() {
 
               {/* Right Column */}
               <div className="space-y-6">
-                {/* Featured Employee */}
-                {featuredEmployee && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Featured Employee</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <h3 className="font-semibold text-lg">{featuredEmployee.name}</h3>
-                        <p className="text-sm text-muted-foreground">{featuredEmployee.position}</p>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Department:</span>
-                          <span className="font-medium">{featuredEmployee.department}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Status:</span>
-                          <Badge variant={getStatusVariant(featuredEmployee.status)}>{featuredEmployee.status}</Badge>
-                        </div>
-                        {featuredEmployee.lastReview && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Last Review:</span>
-                            <span className="font-medium">
-                              {new Date(featuredEmployee.lastReview).toLocaleDateString()}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Next Review:</span>
-                          <span className="font-medium">
-                            {new Date(featuredEmployee.nextReview).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2 pt-2">
-                        <Button size="sm" className="w-full">
-                          View Reviews
-                        </Button>
-                        <Button size="sm" variant="outline" className="w-full bg-transparent">
-                          Add Review
-                        </Button>
-                        <Button size="sm" variant="outline" className="w-full bg-transparent">
-                          <Target className="mr-2 h-4 w-4" />
-                          Set Goals
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
                 {/* Recent Activity */}
                 <Card>
                   <CardHeader>
@@ -974,6 +969,35 @@ export default function HRPage() {
           </TabsContent>
 
           <TabsContent value="recruitment">
+            {/* Quick Action Bar */}
+            <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-1">Recruitment Pipeline</h2>
+                <p className="text-sm text-muted-foreground">
+                  Anonymous, bias-free hiring with Zenith-powered matching
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">
+                  <Filter className="mr-2 h-4 w-4" />
+                  Filter
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+                <AddCandidateDialog />
+              </div>
+            </div>
+
+            {/* Anonymous Info Badge - Compact */}
+            <div className="mb-6 flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+              <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>Anonymous Mode:</strong> All candidates identified by ID only. No personal information displayed.
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -991,8 +1015,8 @@ export default function HRPage() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">AI-Matched</CardTitle>
-                  <Brain className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-sm font-medium">Zenith-Matched</CardTitle>
+                  <Sparkles className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">38</div>
@@ -1016,193 +1040,266 @@ export default function HRPage() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Diversity Score</CardTitle>
-                  <Shield className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Interviews Scheduled</CardTitle>
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">68%</div>
-                  <p className="text-xs text-muted-foreground">Hiring diversity</p>
+                  <div className="text-2xl font-bold">12</div>
+                  <p className="text-xs text-muted-foreground">This week</p>
                 </CardContent>
               </Card>
             </div>
 
+            {/* Top Candidates Section - Collapsible */}
             <Card className="mb-6">
-              <CardHeader>
+              <CardHeader 
+                className="cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => setShowTopCandidates(!showTopCandidates)}
+              >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Sparkles className="h-5 w-5 text-primary" />
-                    <CardTitle>AI-Powered Candidate Matching</CardTitle>
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        Top Matching Candidates
+                        <Badge variant="secondary" className="ml-2">3 candidates</Badge>
+                      </CardTitle>
+                      <CardDescription>Best fits based on skills, experience, and qualifications</CardDescription>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Filter className="mr-2 h-4 w-4" />
-                      Filters
-                    </Button>
-                    <AddCandidateDialog />
-                  </div>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    {showTopCandidates ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
-                <CardDescription>Intelligent resume parsing and candidate scoring</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockCandidates.slice(0, 3).map((candidate) => {
-                    const aiScore = Math.floor(Math.random() * 30) + 70 // Mock AI score 70-100
+              {showTopCandidates && (
+                <CardContent>
+                  <div className="space-y-3">
+                    {mockCandidates.slice(0, 3).map((candidate) => {
+                    // Get job requirements for this position
+                    const jobReqs = defaultJobRequirements[candidate.position] || defaultJobRequirements["Senior Developer"]
+                    // Calculate real Zenith match score
+                    const zenithScore = calculateZenithMatchScore(candidate, jobReqs)
+                    const scoreColor = zenithScore >= 90 ? "text-green-600" : zenithScore >= 75 ? "text-blue-600" : zenithScore >= 60 ? "text-yellow-600" : "text-gray-600"
+                    const scoreBg = zenithScore >= 90 ? "bg-green-50 dark:bg-green-950" : zenithScore >= 75 ? "bg-blue-50 dark:bg-blue-950" : zenithScore >= 60 ? "bg-yellow-50 dark:bg-yellow-950" : "bg-gray-50 dark:bg-gray-950"
+                    
                     return (
                       <div
                         key={candidate.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                        className="group flex items-start gap-4 p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer bg-background hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-500 hover:shadow-2xl hover:scale-[1.02]"
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold">{candidate.name}</h3>
-                            <Badge
-                              variant={getStageVariant(candidate.stage)}
-                              className={getStageColor(candidate.stage)}
-                            >
-                              {candidate.stage}
-                            </Badge>
-                            <Badge variant="outline" className="gap-1">
-                              <Brain className="h-3 w-3" />
-                              AI Match: {aiScore}%
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">{candidate.position}</p>
-                          <div className="flex items-center gap-4 text-xs">
-                            <Badge variant="secondary" className="gap-1">
-                              <CheckCircle2 className="h-3 w-3 text-green-500" />
-                              5+ years exp
-                            </Badge>
-                            <Badge variant="secondary" className="gap-1">
-                              <CheckCircle2 className="h-3 w-3 text-green-500" />
-                              React, Node.js
-                            </Badge>
-                            <Badge variant="secondary" className="gap-1">
-                              <CheckCircle2 className="h-3 w-3 text-green-500" />
-                              Leadership
-                            </Badge>
+                        {/* Match Score - Visual Indicator */}
+                        <div className={`flex flex-col items-center justify-center p-3 rounded-lg ${scoreBg} min-w-[80px]`}>
+                          <div className={`text-3xl font-bold ${scoreColor}`}>{zenithScore}</div>
+                          <div className="text-xs text-muted-foreground mt-1">Match</div>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Sparkles className={`h-3 w-3 ${scoreColor}`} />
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
+
+                        {/* Candidate Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-lg">{candidate.candidateId}</h3>
+                            <Badge variant={getStageVariant(candidate.stage)} className={`${getStageColor(candidate.stage)} font-medium`}>
+                              {candidate.stage}
+                            </Badge>
+                          </div>
+                          
+                          <p className="text-sm font-medium text-foreground mb-3">{candidate.position}</p>
+                          
+                          <div className="grid grid-cols-2 gap-2 mb-3">
+                            <div className="flex items-center gap-2 text-sm">
+                              <div className="w-2 h-2 rounded-full bg-primary" />
+                              <span className="text-muted-foreground">Experience:</span>
+                              <span className="font-medium">{candidate.experience}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <div className="w-2 h-2 rounded-full bg-primary" />
+                              <span className="text-muted-foreground">Education:</span>
+                              <span className="font-medium">{candidate.education}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5 mb-3">
+                            {candidate.skills.split(',').slice(0, 4).map((skill, idx) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                {skill.trim()}
+                              </Badge>
+                            ))}
+                            {candidate.skills.split(',').length > 4 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{candidate.skills.split(',').length - 4} more
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              Applied {new Date(candidate.appliedDate).toLocaleDateString()}
+                            </span>
+                            <span>•</span>
+                            <span>{candidate.assignedTo}</span>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex flex-col gap-2">
+                          <Button size="sm" className="w-full">
                             <Calendar className="mr-2 h-4 w-4" />
-                            Schedule
+                            Interview
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" className="w-full">
                             <FileText className="mr-2 h-4 w-4" />
-                            Resume
+                            View Resume
                           </Button>
-                          <Button size="sm">
+                          <Button variant="outline" size="sm" className="w-full">
                             <ArrowRight className="mr-2 h-4 w-4" />
-                            Advance
+                            Next Stage
                           </Button>
                         </div>
                       </div>
                     )
                   })}
                 </div>
-              </CardContent>
+                </CardContent>
+              )}
             </Card>
 
-            {/* Pipeline Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">25</div>
-                  <p className="text-xs text-muted-foreground">Across all positions</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Open Positions</CardTitle>
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">3</div>
-                  <p className="text-xs text-muted-foreground">Currently hiring</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Avg Time to Fill</CardTitle>
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">28</div>
-                  <p className="text-xs text-muted-foreground">Days average</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">15%</div>
-                  <p className="text-xs text-muted-foreground">Application to hire</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Candidate Pipeline */}
+            {/* All Candidates - Organized by Stage */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Candidate Pipeline</CardTitle>
-                    <CardDescription>Track candidates through the hiring process</CardDescription>
+                    <CardTitle>All Candidates by Stage</CardTitle>
+                    <CardDescription>View and manage candidates at each hiring stage</CardDescription>
                   </div>
-                  <AddCandidateDialog />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {mockCandidates.map((candidate) => (
-                    <div
-                      key={candidate.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold">{candidate.name}</h3>
-                          <Badge variant={getStageVariant(candidate.stage)} className={getStageColor(candidate.stage)}>
-                            {candidate.stage}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-1">{candidate.position}</p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>
-                            <Clock className="inline h-3 w-3 mr-1" />
-                            {candidate.daysInStage} days in stage
-                          </span>
-                          <span>Assigned to: {candidate.assignedTo}</span>
-                          <span>Applied: {new Date(candidate.appliedDate).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <ArrowRight className="mr-2 h-4 w-4" />
-                          Advance Stage
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <FileText className="mr-2 h-4 w-4" />
-                          Add Notes
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
+                {/* Stage Tabs/Filters */}
+                <div className="flex gap-2 mb-6 flex-wrap">
+                  <Button 
+                    variant={candidateStageFilter === "All" ? "default" : "outline"} 
+                    size="sm" 
+                    className="flex items-center gap-2"
+                    onClick={() => setCandidateStageFilter("All")}
+                  >
+                    All Candidates
+                    <Badge variant="secondary" className="ml-1">{mockCandidates.length}</Badge>
+                  </Button>
+                  <Button 
+                    variant={candidateStageFilter === "Applied" ? "default" : "outline"} 
+                    size="sm" 
+                    className="flex items-center gap-2"
+                    onClick={() => setCandidateStageFilter("Applied")}
+                  >
+                    Applied
+                    <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Applied").length}</Badge>
+                  </Button>
+                  <Button 
+                    variant={candidateStageFilter === "Reviewed" ? "default" : "outline"} 
+                    size="sm" 
+                    className="flex items-center gap-2"
+                    onClick={() => setCandidateStageFilter("Reviewed")}
+                  >
+                    Reviewed
+                    <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Reviewed").length}</Badge>
+                  </Button>
+                  <Button 
+                    variant={candidateStageFilter === "Interviewed" ? "default" : "outline"} 
+                    size="sm" 
+                    className="flex items-center gap-2"
+                    onClick={() => setCandidateStageFilter("Interviewed")}
+                  >
+                    Interviewed
+                    <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Interviewed").length}</Badge>
+                  </Button>
+                  <Button 
+                    variant={candidateStageFilter === "Offered" ? "default" : "outline"} 
+                    size="sm" 
+                    className="flex items-center gap-2"
+                    onClick={() => setCandidateStageFilter("Offered")}
+                  >
+                    Offered
+                    <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Offered").length}</Badge>
+                  </Button>
+                </div>
+
+                {/* Candidate List */}
+                <div className="space-y-3">
+                  {mockCandidates.filter(candidate => candidateStageFilter === "All" || candidate.stage === candidateStageFilter).length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-lg font-medium mb-1">No candidates in this stage</p>
+                      <p className="text-sm">Try selecting a different stage filter</p>
                     </div>
-                  ))}
+                  ) : (
+                    mockCandidates
+                      .filter(candidate => candidateStageFilter === "All" || candidate.stage === candidateStageFilter)
+                      .map((candidate) => {
+                    const jobReqs = defaultJobRequirements[candidate.position] || defaultJobRequirements["Senior Developer"]
+                    const zenithScore = calculateZenithMatchScore(candidate, jobReqs)
+                    
+                    return (
+                      <div
+                        key={candidate.id}
+                        className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                      >
+                        {/* Compact Score */}
+                        <div className="flex flex-col items-center min-w-[60px]">
+                          <div className={`text-2xl font-bold ${zenithScore >= 90 ? 'text-green-600' : zenithScore >= 75 ? 'text-blue-600' : 'text-gray-600'}`}>
+                            {zenithScore}
+                          </div>
+                          <div className="text-xs text-muted-foreground">match</div>
+                        </div>
+
+                        {/* Candidate Info - Compact */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold">{candidate.candidateId}</h3>
+                            <Badge variant={getStageVariant(candidate.stage)} className={getStageColor(candidate.stage)}>
+                              {candidate.stage}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">•</span>
+                            <span className="text-sm font-medium">{candidate.position}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span>{candidate.experience}</span>
+                            <span>•</span>
+                            <span>{candidate.education}</span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {candidate.daysInStage}d in stage
+                            </span>
+                            <span>•</span>
+                            <span>{candidate.assignedTo}</span>
+                          </div>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="sm">
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Calendar className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <ArrowRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1584,7 +1681,14 @@ export default function HRPage() {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setEditingGoal(goal.id)
+                            setGoalProgress(goal.progress)
+                          }}
+                        >
                           Update Progress
                         </Button>
                         <Button variant="outline" size="sm">
@@ -1599,6 +1703,83 @@ export default function HRPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Update Progress Dialog */}
+            <Dialog open={editingGoal !== null} onOpenChange={(open) => !open && setEditingGoal(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Update Goal Progress</DialogTitle>
+                  <DialogDescription>
+                    {editingGoal && mockGoals.find(g => g.id === editingGoal)?.goal}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-6 py-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="progress">Progress</Label>
+                      <span className="text-2xl font-bold text-primary">{goalProgress}%</span>
+                    </div>
+                    <Slider
+                      id="progress"
+                      value={[goalProgress]}
+                      onValueChange={(value) => setGoalProgress(value[0])}
+                      max={100}
+                      step={5}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>0%</span>
+                      <span>25%</span>
+                      <span>50%</span>
+                      <span>75%</span>
+                      <span>100%</span>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar Preview */}
+                  <div className="space-y-2">
+                    <Label>Progress Preview</Label>
+                    <Progress value={goalProgress} className="h-3" />
+                  </div>
+
+                  {/* Status Based on Progress */}
+                  <div className="p-3 bg-accent rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">New Status:</span>
+                      {goalProgress === 100 ? (
+                        <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Complete
+                        </Badge>
+                      ) : goalProgress >= 70 ? (
+                        <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          On Track
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Needs Attention
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setEditingGoal(null)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => {
+                    console.log(`[v0] Updated goal ${editingGoal} progress to ${goalProgress}%`)
+                    // In a real app, this would update the backend
+                    // For now, just close the dialog
+                    setEditingGoal(null)
+                  }}>
+                    Save Progress
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           <TabsContent value="analytics">
@@ -2067,7 +2248,7 @@ export default function HRPage() {
                       Create Match
                     </Button>
                   </div>
-                  <CardDescription>AI-powered mentor-mentee matching</CardDescription>
+                  <CardDescription>Zenith-powered mentor-mentee matching</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -2084,7 +2265,7 @@ export default function HRPage() {
                           </div>
                           <div className="text-right">
                             <Badge variant="outline" className="gap-1">
-                              <Brain className="h-3 w-3" />
+                              <Sparkles className="h-3 w-3" />
                               {match.matchScore}% match
                             </Badge>
                           </div>
@@ -2194,10 +2375,10 @@ export default function HRPage() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-2">
-                    <Brain className="h-5 w-5 text-primary" />
+                    <Sparkles className="h-5 w-5 text-primary" />
                     <CardTitle>Predictive Analytics Dashboard</CardTitle>
                   </div>
-                  <CardDescription>AI-powered workforce insights and recommendations</CardDescription>
+                  <CardDescription>Zenith-powered workforce insights and recommendations</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

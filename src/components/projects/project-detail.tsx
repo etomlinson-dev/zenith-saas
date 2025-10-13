@@ -85,13 +85,13 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
             <div>
               <h1 className="text-4xl font-bold text-foreground mb-3">{project.name}</h1>
               <div className="flex items-center gap-3">
-                <Badge variant="outline" className="border-green-500/50 text-green-500">
+                <Badge variant="outline" className="border-green-500 text-green-600 bg-green-500/20 dark:text-green-400">
                   {project.status}
                 </Badge>
-                <Badge variant="outline" className="border-primary/50 text-primary">
+                <Badge variant="outline" className="border-primary text-primary bg-primary/20">
                   Due: {project.deadline}
                 </Badge>
-                <Badge variant="outline" className="border-primary/50 text-primary">
+                <Badge variant="outline" className="border-primary text-primary bg-primary/20">
                   {project.progress}% Complete
                 </Badge>
               </div>
@@ -181,114 +181,24 @@ export function ProjectDetail({ projectId }: ProjectDetailProps) {
         </div>
 
         {/* Main Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column - Main View */}
-          <div className={activeView === "team" || activeView === "files" ? "lg:col-span-12" : "lg:col-span-9"}>
-            {activeView === "board" && <KanbanBoard project={project} />}
-            {activeView === "table" && <TableView project={project} />}
-            {activeView === "calendar" && <CalendarView project={project} />}
-            {activeView === "timeline" && <TimelineView project={project} />}
-            {activeView === "team" && <TeamManagement project={project} />}
-            {activeView === "files" && <FileManagement project={project} />}
-            {activeView !== "board" &&
-              activeView !== "table" &&
-              activeView !== "calendar" &&
-              activeView !== "timeline" &&
-              activeView !== "team" &&
-              activeView !== "files" && (
-                <Card className="p-6">
-                  <h2 className="text-xl font-semibold mb-4 capitalize">{activeView} View</h2>
-                  <p className="text-muted-foreground">{activeView} view coming soon...</p>
-                </Card>
-              )}
-          </div>
-
-          {/* Right Sidebar - Only show for certain views */}
-          {activeView !== "team" && activeView !== "files" && (
-            <div className="lg:col-span-3 space-y-6">
-              {/* Calendar */}
-              <Card className="p-4">
-                <h3 className="font-semibold mb-3 text-foreground">Calendar</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">February 2025</span>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                        ‹
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                        ›
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                    {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
-                      <div key={i} className="text-muted-foreground font-medium py-1">
-                        {day}
-                      </div>
-                    ))}
-                    {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
-                      <div
-                        key={day}
-                        className={`
-                        py-1 rounded text-xs cursor-pointer transition-colors
-                        ${day === 10 ? "bg-primary text-primary-foreground font-bold" : "hover:bg-muted/50"}
-                        ${[15, 20, 25, 28].includes(day) ? "relative after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-destructive" : ""}
-                      `}
-                      >
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+        <div className="w-full">
+          {activeView === "board" && <KanbanBoard project={project} />}
+          {activeView === "table" && <TableView project={project} />}
+          {activeView === "calendar" && <CalendarView project={project} />}
+          {activeView === "timeline" && <TimelineView project={project} />}
+          {activeView === "team" && <TeamManagement project={project} />}
+          {activeView === "files" && <FileManagement project={project} />}
+          {activeView !== "board" &&
+            activeView !== "table" &&
+            activeView !== "calendar" &&
+            activeView !== "timeline" &&
+            activeView !== "team" &&
+            activeView !== "files" && (
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold mb-4 capitalize">{activeView} View</h2>
+                <p className="text-muted-foreground">{activeView} view coming soon...</p>
               </Card>
-
-              {/* Team Members */}
-              <Card className="p-4">
-                <h3 className="font-semibold mb-3 text-foreground">Team</h3>
-                <div className="space-y-3">
-                  {project.team.map((member) => (
-                    <div key={member.id} className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-semibold">
-                        {member.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">{member.name}</p>
-                        <p className="text-xs text-muted-foreground">{member.role}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground">{member.capacity}h</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              {/* Files */}
-              <Card className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-foreground">Files</h3>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {project.files.map((file) => (
-                    <div
-                      key={file.id}
-                      className="p-2 rounded-lg border border-border/40 hover:border-primary/40 hover:bg-muted/20 transition-all cursor-pointer"
-                    >
-                      <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">{file.size}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          )}
+            )}
         </div>
 
         {/* Activity Timeline */}

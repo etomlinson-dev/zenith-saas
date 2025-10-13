@@ -27,6 +27,7 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  ChevronRight,
 } from "lucide-react"
 
 export default function AutomationPage() {
@@ -61,38 +62,49 @@ export default function AutomationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-32">
+    <div className="min-h-screen bg-background my-28">
       {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-6 py-4">
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">AutomationBot</h1>
-              <p className="text-sm text-muted-foreground">AI Assistant & Task Automation</p>
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
+                <ChevronRight className="h-4 w-4" />
+                <span className="text-foreground">Automation</span>
+              </div>
+              
+              {/* Title with Icon */}
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2.5 rounded-lg">
+                  <Bot className="h-6 w-6 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold">Automation</h1>
+              </div>
+              
+              <p className="text-muted-foreground mt-2">AutomationBot - Intelligent task automation</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline">
                 <Upload className="mr-2 h-4 w-4" />
                 Upload Document
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline">
                 <Play className="mr-2 h-4 w-4" />
                 Run Task
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline">
                 <History className="mr-2 h-4 w-4" />
                 View History
-              </Button>
-              <Button variant="outline" size="sm">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-6">
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card>

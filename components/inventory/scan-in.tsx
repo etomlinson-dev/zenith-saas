@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Scan, Check } from "lucide-react"
 import { inventoryItems } from "@/lib/inventory-data"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 
 export function ScanIn() {
   const [skuInput, setSkuInput] = useState("")

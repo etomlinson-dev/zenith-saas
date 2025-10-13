@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Scan, Check, AlertTriangle } from "lucide-react"
 import { inventoryItems } from "@/lib/inventory-data"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 
 export function CheckOut() {
   const [skuInput, setSkuInput] = useState("")

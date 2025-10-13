@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -19,7 +17,7 @@ import {
   Package,
 } from "lucide-react"
 import { suppliers } from "@/lib/inventory-data"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 
 export function SuppliersList() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -49,7 +47,7 @@ export function SuppliersList() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/inventory">
+            <Link to="/inventory">
               <Button variant="ghost" size="icon">
                 <ArrowLeft className="w-5 h-5" />
               </Button>

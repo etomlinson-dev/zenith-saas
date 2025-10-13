@@ -10,23 +10,23 @@ interface KanbanBoardProps {
 }
 
 const statusColumns = [
-  { id: "backlog", label: "Backlog", color: "bg-muted" },
-  { id: "todo", label: "To Do", color: "bg-blue-500/10" },
-  { id: "in-progress", label: "In Progress", color: "bg-yellow-500/10" },
-  { id: "review", label: "Review", color: "bg-purple-500/10" },
-  { id: "blocked", label: "Blocked", color: "bg-red-500/10" },
-  { id: "done", label: "Done", color: "bg-green-500/10" },
+  { id: "backlog", label: "Backlog", color: "bg-muted/80 border-t-4 border-t-muted-foreground" },
+  { id: "todo", label: "To Do", color: "bg-blue-500/20 border-t-4 border-t-blue-500" },
+  { id: "in-progress", label: "In Progress", color: "bg-yellow-500/20 border-t-4 border-t-yellow-500" },
+  { id: "review", label: "Review", color: "bg-purple-500/20 border-t-4 border-t-purple-500" },
+  { id: "blocked", label: "Blocked", color: "bg-red-500/20 border-t-4 border-t-red-500" },
+  { id: "done", label: "Done", color: "bg-green-500/20 border-t-4 border-t-green-500" },
 ] as const
 
 function TaskCard({ task, onDragStart }: { task: Task; onDragStart: (task: Task) => void }) {
   const getPriorityColor = (priority: Task["priority"]) => {
     switch (priority) {
       case "high":
-        return "border-red-500/50 text-red-500 bg-red-500/10"
+        return "border-red-500 text-red-600 bg-red-500/20 dark:text-red-400"
       case "medium":
-        return "border-yellow-500/50 text-yellow-500 bg-yellow-500/10"
+        return "border-yellow-500 text-yellow-600 bg-yellow-500/20 dark:text-yellow-400"
       case "low":
-        return "border-green-500/50 text-green-500 bg-green-500/10"
+        return "border-green-500 text-green-600 bg-green-500/20 dark:text-green-400"
     }
   }
 

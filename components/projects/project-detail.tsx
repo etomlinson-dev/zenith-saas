@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,7 +22,7 @@ import {
   AlertCircle,
   Clock,
 } from "lucide-react"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 import { KanbanBoard } from "./kanban-board"
 import { TableView } from "./table-view"
 import { CalendarView } from "./calendar-view"

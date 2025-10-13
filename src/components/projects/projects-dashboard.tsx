@@ -214,8 +214,8 @@ export function ProjectsDashboard() {
                             task.priority === "high"
                               ? "border-destructive/50 text-destructive"
                               : task.priority === "medium"
-                                ? "border-yellow-500/50 text-yellow-500"
-                                : "border-green-500/50 text-green-500"
+                                ? "border-yellow-500 text-yellow-600 bg-yellow-500/20 dark:text-yellow-400"
+                                : "border-green-500 text-green-600 bg-green-500/20 dark:text-green-400"
                           }`}
                         >
                           {task.priority}

@@ -111,19 +111,28 @@ export default function WorkforcePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background my-24 border-0">
+    <div className="min-h-screen bg-background my-28 border-0">
       {/* Header */}
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <span>Zenith Hub</span>
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
                 <ChevronRight className="h-4 w-4" />
-                <span>Workflow Management</span>
+                <span className="text-foreground">Workforce Management</span>
               </div>
-              <h1 className="text-3xl font-bold">Workflow Management</h1>
-              <p className="text-muted-foreground">TaskBeacon</p>
+              
+              {/* Title with Icon */}
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2.5 rounded-lg">
+                  <MapPin className="h-6 w-6 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold">Workforce Management</h1>
+              </div>
+              
+              <p className="text-muted-foreground mt-2">TaskBeacon - Field service management</p>
             </div>
             <div className="flex gap-3">
               <Button

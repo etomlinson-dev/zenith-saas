@@ -167,10 +167,10 @@ export function CalendarView({ project }: CalendarViewProps) {
                       variant="outline"
                       className={`text-xs ${
                         task.priority === "high"
-                          ? "border-red-500/50 text-red-500"
-                          : task.priority === "medium"
-                            ? "border-yellow-500/50 text-yellow-500"
-                            : "border-green-500/50 text-green-500"
+                          ? "border-red-500 text-red-600 bg-red-500/20 dark:text-red-400"
+                        : task.priority === "medium"
+                            ? "border-yellow-500 text-yellow-600 bg-yellow-500/20 dark:text-yellow-400"
+                            : "border-green-500 text-green-600 bg-green-500/20 dark:text-green-400"
                       }`}
                     >
                       {task.priority}

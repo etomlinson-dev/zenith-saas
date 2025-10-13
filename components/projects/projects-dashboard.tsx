@@ -1,5 +1,3 @@
-"use client"
-
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -15,7 +13,7 @@ import {
   ArrowRight,
   FolderKanban,
 } from "lucide-react"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 
 export function ProjectsDashboard() {
   const activeProjects = mockProjects.filter((p) => p.status === "active").length

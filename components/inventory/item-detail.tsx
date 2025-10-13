@@ -1,10 +1,9 @@
-"use client"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Edit, ArrowDown, ArrowUp, Package, DollarSign, MapPin, TrendingUp, Calendar } from "lucide-react"
 import { inventoryItems, inventoryMovements } from "@/lib/inventory-data"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 
 interface ItemDetailProps {
   itemId: string

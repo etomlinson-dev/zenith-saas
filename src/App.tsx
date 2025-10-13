@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { useState } from 'react'
 import { Sidebar } from './components/Sidebar'
+import { Header } from './components/Header'
 import HomePage from './pages/HomePage'
 import HubPage from './pages/HubPage'
 import ProjectsPage from './pages/ProjectsPage'
@@ -23,12 +24,13 @@ function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <Sidebar 
         isCollapsed={isSidebarCollapsed} 
         setIsCollapsed={setIsSidebarCollapsed} 
       />
       <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'}`}>
+        <Header />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/hub" element={<HubPage />} />
