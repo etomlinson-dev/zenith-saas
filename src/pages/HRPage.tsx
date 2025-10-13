@@ -805,7 +805,7 @@ export default function HRPage() {
                               <strong>{insight.employee}</strong> shows signs of disengagement
                             </p>
                             <div className="text-xs text-muted-foreground mb-2">
-                              <strong>Risk Factors:</strong> {insight.factors.join(", ")}
+                              <strong>Risk Factors:</strong> {insight.factors?.join(", ") || "N/A"}
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <Lightbulb className="h-4 w-4 text-primary" />
@@ -2431,12 +2431,12 @@ export default function HRPage() {
                             <div className="mb-3">
                               <p className="text-sm font-medium mb-2">Contributing Factors:</p>
                               <ul className="space-y-1">
-                                {insight.factors.map((factor, idx) => (
+                                {insight.factors?.map((factor, idx) => (
                                   <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
                                     {factor}
                                   </li>
-                                ))}
+                                )) || <li className="text-sm text-muted-foreground">No factors available</li>}
                               </ul>
                             </div>
                             <div className="p-3 bg-primary/5 rounded-lg">
