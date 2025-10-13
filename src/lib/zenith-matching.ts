@@ -344,3 +344,5 @@ export const defaultJobRequirements: Record<string, JobRequirements> = {
   },
 }
 
+
+
