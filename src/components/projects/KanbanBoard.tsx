@@ -1,8 +1,8 @@
 import { useState } from "react"
-import { Card } from "@/src/components/ui/card"
-import { Badge } from "@/src/components/ui/badge"
-import { Button } from "@/src/components/ui/button"
-import type { Project, Task } from "@/src/lib/project-data"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import type { Project, Task } from "@/lib/project-data"
 import { GripVertical, Plus } from "lucide-react"
 
 interface KanbanBoardProps {
@@ -61,7 +61,7 @@ function TaskCard({ task, onDragStart }: { task: Task; onDragStart: (task: Task)
             <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-semibold">
               {task.assignee.name
                 .split(" ")
-                .map((n) => n[0])
+                .map((n: string) => n[0])
                 .join("")}
             </div>
             <span className="text-xs text-muted-foreground">{task.assignee.name}</span>

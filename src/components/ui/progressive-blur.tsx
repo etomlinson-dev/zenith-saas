@@ -1,6 +1,6 @@
 "use client"
 import { cn } from "@/lib/utils"
-import { type HTMLMotionProps, motion } from "motion/react"
+import { type HTMLMotionProps, motion } from "framer-motion"
 
 export const GRADIENT_ANGLES = {
   top: 0,
@@ -29,7 +29,7 @@ export function ProgressiveBlur({
   return (
     <div className={cn("relative", className)}>
       {Array.from({ length: layers }).map((_, index) => {
-        const angle = GRADIENT_ANGLES[direction]
+        const angle = GRADIENT_ANGLES[direction as keyof typeof GRADIENT_ANGLES]
         const gradientStops = [
           index * segmentSize,
           (index + 1) * segmentSize,

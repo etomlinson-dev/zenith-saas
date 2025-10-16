@@ -105,6 +105,11 @@ export function CalendarView({ project }: CalendarViewProps) {
       // Add task/event to global data store
       const newTaskWithId = addTask(project.id, taskData)
       
+      if (!newTaskWithId) {
+        console.error("[CalendarView] Failed to add task")
+        return
+      }
+      
       // Update local state immediately for instant UI feedback
       setTasks([...tasks, newTaskWithId])
       

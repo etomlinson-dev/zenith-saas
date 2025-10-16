@@ -41,7 +41,7 @@ export function ProjectsDashboard() {
             <h1 className="text-4xl font-bold text-foreground">Project Management</h1>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href="/" className="hover:text-foreground transition-colors">
+            <Link to="/" className="hover:text-foreground transition-colors">
               Home
             </Link>
             <span>/</span>
@@ -142,7 +142,7 @@ export function ProjectsDashboard() {
                         <p className="text-xs text-muted-foreground">Deadline</p>
                         <p className="text-sm font-medium text-foreground">{project.deadline}</p>
                       </div>
-                      <Link href={`/projects/${project.id}`}>
+                      <Link to={`/projects/${project.id}`}>
                         <Button size="sm" variant="ghost" className="group-hover:bg-primary/10">
                           <ArrowRight className="w-4 h-4" />
                         </Button>

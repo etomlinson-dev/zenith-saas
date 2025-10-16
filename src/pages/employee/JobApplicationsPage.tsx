@@ -31,6 +31,14 @@ interface Job {
   requirements: string[]
 }
 
+interface Application {
+  id: string
+  jobTitle: string
+  department: string
+  appliedDate: string
+  status: "under-review" | "interview" | "offer" | "rejected"
+}
+
 export default function JobApplicationsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [departmentFilter, setDepartmentFilter] = useState("all")
@@ -74,20 +82,20 @@ export default function JobApplicationsPage() {
     },
   ]
 
-  const myApplications = [
+  const myApplications: Application[] = [
     {
       id: "1",
       jobTitle: "Staff Engineer",
       department: "Engineering",
       appliedDate: "2024-12-15",
-      status: "under-review" as const
+      status: "under-review"
     },
     {
       id: "2",
       jobTitle: "Tech Lead",
       department: "Engineering",
       appliedDate: "2024-11-20",
-      status: "interview" as const
+      status: "interview"
     },
   ]
 

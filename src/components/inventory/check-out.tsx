@@ -49,7 +49,7 @@ export function CheckOut() {
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Link href="/inventory">
+          <Link to="/inventory">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="w-5 h-5" />
             </Button>

@@ -93,7 +93,7 @@ export function InventoryDashboard() {
               </div>
             </div>
           </Card>
-          <Link href="/inventory/purchase-orders">
+          <Link to="/inventory/purchase-orders">
             <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
               <div className="flex flex-col items-center text-center space-y-2">
                 <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
@@ -106,7 +106,7 @@ export function InventoryDashboard() {
               </div>
             </Card>
           </Link>
-          <Link href="/inventory/scan-in">
+          <Link to="/inventory/scan-in">
             <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
               <div className="flex flex-col items-center text-center space-y-2">
                 <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
@@ -119,7 +119,7 @@ export function InventoryDashboard() {
               </div>
             </Card>
           </Link>
-          <Link href="/inventory/check-out">
+          <Link to="/inventory/check-out">
             <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
               <div className="flex flex-col items-center text-center space-y-2">
                 <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
@@ -186,7 +186,7 @@ export function InventoryDashboard() {
                         </Badge>
                       </td>
                       <td className="p-4">
-                        <Link href={`/inventory/items/${item.id}`}>
+                        <Link to={`/inventory/items/${item.id}`}>
                           <Button variant="ghost" size="sm">
                             View
                           </Button>

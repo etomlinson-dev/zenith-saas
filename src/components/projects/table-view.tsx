@@ -78,6 +78,11 @@ export function TableView({ project }: TableViewProps) {
       // Add task to global data store
       const newTaskWithId = addTask(project.id, taskData)
       
+      if (!newTaskWithId) {
+        console.error("[TableView] Failed to add task")
+        return
+      }
+      
       // Update local state
       setTasks([...tasks, newTaskWithId])
       
