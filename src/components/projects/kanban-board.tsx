@@ -1,33 +1,36 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Project, Task } from "@/lib/project-data"
+import { updateTaskStatus } from "@/lib/project-data"
 import { GripVertical, Plus } from "lucide-react"
 
 interface KanbanBoardProps {
   project: Project
+  onAddTask?: (defaultStatus?: Task["status"]) => void
+  onTaskClick?: (task: Task) => void
 }
 
 const statusColumns = [
-  { id: "backlog", label: "Backlog", color: "bg-muted/80 border-t-4 border-t-muted-foreground" },
-  { id: "todo", label: "To Do", color: "bg-blue-500/20 border-t-4 border-t-blue-500" },
-  { id: "in-progress", label: "In Progress", color: "bg-yellow-500/20 border-t-4 border-t-yellow-500" },
-  { id: "review", label: "Review", color: "bg-purple-500/20 border-t-4 border-t-purple-500" },
-  { id: "blocked", label: "Blocked", color: "bg-red-500/20 border-t-4 border-t-red-500" },
-  { id: "done", label: "Done", color: "bg-green-500/20 border-t-4 border-t-green-500" },
+  { id: "backlog", label: "Backlog", color: "bg-muted" },
+  { id: "todo", label: "To Do", color: "bg-blue-500/10" },
+  { id: "in-progress", label: "In Progress", color: "bg-yellow-500/10" },
+  { id: "review", label: "Review", color: "bg-purple-500/10" },
+  { id: "blocked", label: "Blocked", color: "bg-red-500/10" },
+  { id: "done", label: "Done", color: "bg-green-500/10" },
 ] as const
 
-function TaskCard({ task, onDragStart }: { task: Task; onDragStart: (task: Task) => void }) {
+function TaskCard({ task, onDragStart, onClick }: { task: Task; onDragStart: (task: Task) => void; onClick: (task: Task) => void }) {
   const getPriorityColor = (priority: Task["priority"]) => {
     switch (priority) {
       case "high":
-        return "border-red-500 text-red-600 bg-red-500/20 dark:text-red-400"
+        return "border-red-500/50 text-red-500 bg-red-500/10"
       case "medium":
-        return "border-yellow-500 text-yellow-600 bg-yellow-500/20 dark:text-yellow-400"
+        return "border-yellow-500/50 text-yellow-500 bg-yellow-500/10"
       case "low":
-        return "border-green-500 text-green-600 bg-green-500/20 dark:text-green-400"
+        return "border-green-500/50 text-green-500 bg-green-500/10"
     }
   }
 
@@ -47,7 +50,8 @@ function TaskCard({ task, onDragStart }: { task: Task; onDragStart: (task: Task)
       onDragEnd={() => {
         console.log("[v0] Drag ended")
       }}
-      className="p-3 cursor-move hover:shadow-lg transition-all group active:opacity-50 active:rotate-2"
+      onClick={() => onClick(task)}
+      className="p-3 cursor-pointer hover:shadow-lg transition-all group active:opacity-50"
     >
       <div className="flex items-start gap-2">
         <div className="cursor-grab active:cursor-grabbing mt-0.5">
@@ -103,11 +107,15 @@ function Column({
   tasks,
   onDrop,
   onDragStart,
+  onAddTask,
+  onTaskClick,
 }: {
   column: (typeof statusColumns)[number]
   tasks: Task[]
   onDrop: (status: Task["status"]) => void
   onDragStart: (task: Task) => void
+  onAddTask?: (defaultStatus?: Task["status"]) => void
+  onTaskClick: (task: Task) => void
 }) {
   const [isDragOver, setIsDragOver] = useState(false)
 
@@ -143,7 +151,7 @@ function Column({
 
       <div className="flex-1 p-2 space-y-2">
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onDragStart={onDragStart} />
+          <TaskCard key={task.id} task={task} onDragStart={onDragStart} onClick={onTaskClick} />
         ))}
 
         {tasks.length === 0 && (
@@ -154,7 +162,12 @@ function Column({
       </div>
 
       <div className="p-2 border-t border-border/40">
-        <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full justify-start text-muted-foreground"
+          onClick={() => onAddTask?.(column.id as Task["status"])}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Add task
         </Button>
@@ -163,9 +176,29 @@ function Column({
   )
 }
 
-export function KanbanBoard({ project }: KanbanBoardProps) {
+export function KanbanBoard({ project, onAddTask, onTaskClick }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<Task[]>(project.tasks)
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
+
+  // Update tasks whenever project.tasks changes
+  useEffect(() => {
+    console.log("[KanbanBoard] Project tasks updated:", project.tasks.length, "tasks")
+    setTasks(project.tasks)
+  }, [project.tasks])
+
+  // Listen for project data updates
+  useEffect(() => {
+    const handleProjectUpdate = (event: CustomEvent) => {
+      console.log("[KanbanBoard] Project data updated event received for project:", event.detail.projectId)
+      if (event.detail.projectId === project.id) {
+        // The parent will re-render with new project data
+        console.log("[KanbanBoard] Refreshing tasks for project:", project.id)
+      }
+    }
+
+    window.addEventListener('projectDataUpdated', handleProjectUpdate as EventListener)
+    return () => window.removeEventListener('projectDataUpdated', handleProjectUpdate as EventListener)
+  }, [project.id])
 
   const getTasksByStatus = (status: Task["status"]) => {
     return tasks.filter((task) => task.status === status)
@@ -176,10 +209,18 @@ export function KanbanBoard({ project }: KanbanBoardProps) {
   }
 
   const handleDrop = (newStatus: Task["status"]) => {
-    if (!draggedTask) return
+    if (!draggedTask) {
+      console.log("[v0] No dragged task found!")
+      return
+    }
 
     console.log("[v0] Moving task", draggedTask.title, "to", newStatus)
+    console.log("[v0] Project ID:", project.id, "Task ID:", draggedTask.id)
 
+    // Update global data store
+    updateTaskStatus(project.id, draggedTask.id, newStatus)
+
+    // Update local state
     setTasks((prevTasks) =>
       prevTasks.map((task) => (task.id === draggedTask.id ? { ...task, status: newStatus } : task)),
     )
@@ -191,13 +232,13 @@ export function KanbanBoard({ project }: KanbanBoardProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-foreground">Kanban Board</h2>
-        <Button size="sm">
+        <Button size="sm" onClick={() => onAddTask?.()}>
           <Plus className="w-4 h-4 mr-2" />
           Add Task
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {statusColumns.map((column) => {
           const columnTasks = getTasksByStatus(column.id as Task["status"])
 
@@ -208,6 +249,8 @@ export function KanbanBoard({ project }: KanbanBoardProps) {
               tasks={columnTasks}
               onDrop={handleDrop}
               onDragStart={handleDragStart}
+              onAddTask={onAddTask}
+              onTaskClick={onTaskClick || (() => {})}
             />
           )
         })}

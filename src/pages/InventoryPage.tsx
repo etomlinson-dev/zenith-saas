@@ -50,10 +50,10 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background my-28">
+    <div className="min-h-screen bg-background p-6">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-6">
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-6 px-6 mb-6">
+        <div className="py-6">
           <div className="flex items-center justify-between">
             <div>
               {/* Breadcrumb */}
@@ -84,7 +84,7 @@ export default function InventoryPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div>
         <div className="space-y-6">
 
         {/* KPI Stats */}

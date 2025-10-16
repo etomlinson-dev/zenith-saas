@@ -1,14 +1,15 @@
-"use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Project, Task } from "@/lib/project-data"
-import { Plus, Search, Filter, MoreHorizontal } from "lucide-react"
+import { Plus, Search, Filter, MoreVertical, Trash2 } from "lucide-react"
+import { TaskDetailsDialog } from "./task-details-dialog"
+import { getProjectTeamMembers, updateTaskStatus, deleteTask, addTask } from "@/lib/project-data"
 
 interface TableViewProps {
   project: Project
@@ -17,36 +18,82 @@ interface TableViewProps {
 export function TableView({ project }: TableViewProps) {
   const [tasks, setTasks] = useState<Task[]>(project.tasks)
   const [searchQuery, setSearchQuery] = useState("")
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [taskDetailsOpen, setTaskDetailsOpen] = useState(false)
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([])
+  const teamMembers = getProjectTeamMembers(project.id)
   const [newTask, setNewTask] = useState({
     title: "",
-    assignee: "",
+    assigneeName: "",
+    assigneeAvatar: "",
     status: "todo" as Task["status"],
     deadline: "",
   })
 
   const filteredTasks = tasks.filter((task) => task.title.toLowerCase().includes(searchQuery.toLowerCase()))
 
+  // Update tasks when project data changes
+  useEffect(() => {
+    setTasks(project.tasks)
+  }, [project.tasks])
+
+  // Listen for project data updates
+  useEffect(() => {
+    const handleProjectUpdate = (event: CustomEvent) => {
+      if (event.detail.projectId === project.id) {
+        console.log("[TableView] Project data updated, refreshing tasks")
+        setTasks(project.tasks)
+      }
+    }
+
+    window.addEventListener('projectDataUpdated', handleProjectUpdate as EventListener)
+    return () => window.removeEventListener('projectDataUpdated', handleProjectUpdate as EventListener)
+  }, [project.id, project.tasks])
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task)
+    setTaskDetailsOpen(true)
+  }
+
+  const formatDeadline = (deadline: string) => {
+    if (!deadline) return 'No deadline'
+    const date = new Date(deadline)
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
   const handleAddTask = () => {
-    if (newTask.title && newTask.assignee && newTask.deadline) {
-      const task: Task = {
-        id: `t${tasks.length + 1}`,
+    if (newTask.title && newTask.assigneeName) {
+      const taskData: Omit<Task, 'id'> = {
         title: newTask.title,
         status: newTask.status,
         priority: "medium",
         assignee: {
-          name: newTask.assignee,
-          avatar: "/placeholder.svg?height=32&width=32",
+          name: newTask.assigneeName,
+          avatar: newTask.assigneeAvatar || "/placeholder.svg?height=32&width=32",
         },
         deadline: newTask.deadline,
         progress: 0,
       }
-      setTasks([...tasks, task])
-      setNewTask({ title: "", assignee: "", status: "todo", deadline: "" })
+      
+      // Add task to global data store
+      const newTaskWithId = addTask(project.id, taskData)
+      
+      // Update local state
+      setTasks([...tasks, newTaskWithId])
+      
+      // Reset form
+      setNewTask({ title: "", assigneeName: "", assigneeAvatar: "", status: "todo", deadline: "" })
+      
+      console.log("[TableView] Task added:", newTaskWithId.title)
     }
   }
 
   const handleStatusChange = (taskId: string, newStatus: Task["status"]) => {
+    // Update local state immediately for responsive UI
     setTasks(tasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)))
+    
+    // Update the underlying data and trigger refresh across all views
+    updateTaskStatus(project.id, taskId, newStatus)
   }
 
   const getPriorityColor = (priority: Task["priority"]) => {
@@ -78,7 +125,37 @@ export function TableView({ project }: TableViewProps) {
   }
 
   const isOverdue = (deadline: string, status: Task["status"]) => {
-    return status !== "done" && new Date(deadline) < new Date()
+    if (!deadline || status === "done") return false
+    return new Date(deadline) < new Date()
+  }
+
+  const toggleTaskSelection = (taskId: string) => {
+    setSelectedTasks(prev =>
+      prev.includes(taskId)
+        ? prev.filter(id => id !== taskId)
+        : [...prev, taskId]
+    )
+  }
+
+  const toggleSelectAll = () => {
+    setSelectedTasks(prev =>
+      prev.length === filteredTasks.length
+        ? []
+        : filteredTasks.map(t => t.id)
+    )
+  }
+
+  const deleteSelectedTasks = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedTasks.length} task(s)?`)) {
+      // Delete each selected task
+      selectedTasks.forEach(taskId => {
+        deleteTask(project.id, taskId)
+      })
+      
+      // Update local state
+      setTasks(tasks.filter(t => !selectedTasks.includes(t.id)))
+      setSelectedTasks([])
+    }
   }
 
   return (
@@ -91,13 +168,33 @@ export function TableView({ project }: TableViewProps) {
             placeholder="Task title"
             value={newTask.title}
             onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && newTask.title && newTask.assigneeName) {
+                handleAddTask()
+              }
+            }}
             className="md:col-span-2"
           />
-          <Input
-            placeholder="Assignee name"
-            value={newTask.assignee}
-            onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
-          />
+          <Select
+            value={newTask.assigneeName}
+            onValueChange={(value) => {
+              const member = teamMembers.find(m => m.name === value)
+              if (member) {
+                setNewTask({ ...newTask, assigneeName: member.name, assigneeAvatar: member.avatar })
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select assignee..." />
+            </SelectTrigger>
+            <SelectContent>
+              {teamMembers.map((member) => (
+                <SelectItem key={member.id} value={member.name}>
+                  {member.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select
             value={newTask.status}
             onValueChange={(value) => setNewTask({ ...newTask, status: value as Task["status"] })}
@@ -121,7 +218,12 @@ export function TableView({ project }: TableViewProps) {
               onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
               className="flex-1"
             />
-            <Button onClick={handleAddTask} size="icon">
+            <Button 
+              onClick={handleAddTask} 
+              size="icon"
+              disabled={!newTask.title || !newTask.assigneeName}
+              title={!newTask.title || !newTask.assigneeName ? "Enter title and select assignee" : "Add task"}
+            >
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -140,6 +242,21 @@ export function TableView({ project }: TableViewProps) {
               className="pl-10"
             />
           </div>
+          {selectedTasks.length > 0 && (
+            <>
+              <Badge variant="secondary">
+                {selectedTasks.length} selected
+              </Badge>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={deleteSelectedTasks}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete {selectedTasks.length === 1 ? 'Task' : `${selectedTasks.length} Tasks`}
+              </Button>
+            </>
+          )}
           <Button variant="outline" size="sm">
             <Filter className="w-4 h-4 mr-2" />
             Filter
@@ -164,6 +281,12 @@ export function TableView({ project }: TableViewProps) {
           <table className="w-full">
             <thead className="bg-muted/50 border-b border-border/40">
               <tr>
+                <th className="text-left p-4 text-sm font-semibold text-foreground w-12">
+                  <Checkbox
+                    checked={selectedTasks.length === filteredTasks.length && filteredTasks.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </th>
                 <th className="text-left p-4 text-sm font-semibold text-foreground">Task</th>
                 <th className="text-left p-4 text-sm font-semibold text-foreground">Assignee</th>
                 <th className="text-left p-4 text-sm font-semibold text-foreground">Status</th>
@@ -178,10 +301,17 @@ export function TableView({ project }: TableViewProps) {
                 <tr
                   key={task.id}
                   className={`
-                    border-b border-border/40 hover:bg-muted/20 transition-colors
+                    border-b border-border/40 hover:bg-muted/20 transition-colors cursor-pointer
                     ${index % 2 === 0 ? "bg-background" : "bg-muted/10"}
                   `}
+                  onClick={() => handleTaskClick(task)}
                 >
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedTasks.includes(task.id)}
+                      onCheckedChange={() => toggleTaskSelection(task.id)}
+                    />
+                  </td>
                   <td className="p-4">
                     <p className="font-medium text-foreground">{task.title}</p>
                   </td>
@@ -196,7 +326,7 @@ export function TableView({ project }: TableViewProps) {
                       <span className="text-sm text-foreground">{task.assignee.name}</span>
                     </div>
                   </td>
-                  <td className="p-4">
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
                     <Select
                       value={task.status}
                       onValueChange={(value) => handleStatusChange(task.id, value as Task["status"])}
@@ -230,15 +360,15 @@ export function TableView({ project }: TableViewProps) {
                   <td className="p-4">
                     <span
                       className={`text-sm ${
-                        isOverdue(task.deadline, task.status) ? "text-red-500 font-semibold" : "text-foreground"
+                        task.deadline && isOverdue(task.deadline, task.status) ? "text-red-500 font-semibold" : "text-foreground"
                       }`}
                     >
-                      {task.deadline}
+                      {formatDeadline(task.deadline)}
                     </span>
                   </td>
-                  <td className="p-4">
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="w-4 h-4" />
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="sm" onClick={() => handleTaskClick(task)}>
+                      <MoreVertical className="w-4 h-4" />
                     </Button>
                   </td>
                 </tr>
@@ -251,6 +381,13 @@ export function TableView({ project }: TableViewProps) {
           <div className="flex items-center justify-center py-12 text-muted-foreground">No tasks found</div>
         )}
       </Card>
+
+      <TaskDetailsDialog
+        projectId={project.id}
+        task={selectedTask}
+        open={taskDetailsOpen}
+        onOpenChange={setTaskDetailsOpen}
+      />
     </div>
   )
 }

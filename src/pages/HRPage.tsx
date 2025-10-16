@@ -9,6 +9,8 @@ import { calculateZenithMatchScore, defaultJobRequirements } from "@/lib/zenith-
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Users,
   Star,
@@ -47,11 +49,16 @@ import {
   ChevronUp,
   ChevronRight,
   UserCog,
+  Mail,
+  Phone,
+  Building,
+  User,
 } from "lucide-react"
 import { AddEmployeeDialog } from "@/components/hr/add-employee-dialog"
 import { AddReviewDialog } from "@/components/hr/add-review-dialog"
 import { AddGoalDialog } from "@/components/hr/add-goal-dialog"
 import { AddCandidateDialog } from "@/components/hr/add-candidate-dialog"
+import { RecruitmentDashboard } from "@/components/hr/recruitment-dashboard"
 
 // Mock data for employees
 const mockEmployees = [
@@ -509,6 +516,34 @@ export default function HRPage() {
   const [candidateStageFilter, setCandidateStageFilter] = useState("All")
   const [editingGoal, setEditingGoal] = useState<number | null>(null)
   const [goalProgress, setGoalProgress] = useState<number>(0)
+  
+  // Employee management state
+  const [selectedEmployee, setSelectedEmployee] = useState<typeof mockEmployees[0] | null>(null)
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false)
+  const [isGoalsDialogOpen, setIsGoalsDialogOpen] = useState(false)
+  
+  // Performance review dialogs state
+  const [selectedReview, setSelectedReview] = useState<any | null>(null)
+  const [isReviewDetailsOpen, setIsReviewDetailsOpen] = useState(false)
+  const [isAddReviewDialogOpen, setIsAddReviewDialogOpen] = useState(false)
+  const [isReviewHistoryOpen, setIsReviewHistoryOpen] = useState(false)
+  
+  // Goal dialogs state
+  const [selectedGoal, setSelectedGoal] = useState<any | null>(null)
+  const [isGoalDetailsOpen, setIsGoalDetailsOpen] = useState(false)
+  const [isAddCommentOpen, setIsAddCommentOpen] = useState(false)
+  const [goalComment, setGoalComment] = useState('')
+  
+  // Development tab state
+  const [isCreateMatchOpen, setIsCreateMatchOpen] = useState(false)
+  const [isGiveRecognitionOpen, setIsGiveRecognitionOpen] = useState(false)
+  
+  // Quick Actions state
+  const [isScheduleInterviewOpen, setIsScheduleInterviewOpen] = useState(false)
+  const [isSend360FeedbackOpen, setIsSend360FeedbackOpen] = useState(false)
+  const [isApproveTimeOffOpen, setIsApproveTimeOffOpen] = useState(false)
+  const [isAssignTrainingOpen, setIsAssignTrainingOpen] = useState(false)
 
   // Calculate days until/since review
   const getDaysUntilReview = (reviewDate: string) => {
@@ -669,10 +704,10 @@ export default function HRPage() {
   const completeGoals = mockGoals.filter((g) => g.status === "Complete").length
 
   return (
-    <div className="min-h-screen bg-background my-28">
+    <div className="min-h-screen bg-background p-6">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-6">
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-6 px-6 mb-6">
+        <div className="py-6">
           <div className="flex items-center justify-between">
             <div>
               {/* Breadcrumb */}
@@ -695,17 +730,13 @@ export default function HRPage() {
             <div className="flex gap-2">
               <AddEmployeeDialog />
               <AddReviewDialog />
-              <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 border-none py-8 border-0">
+      <div className="border-none border-0">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
@@ -865,23 +896,23 @@ export default function HRPage() {
                   <CardDescription>Common HR tasks</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Button className="w-full justify-start bg-transparent" variant="outline" onClick={() => setIsScheduleInterviewOpen(true)}>
                     <UserPlus className="mr-2 h-4 w-4" />
                     Schedule Interview
                   </Button>
-                  <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Button className="w-full justify-start bg-transparent" variant="outline" onClick={() => setIsSend360FeedbackOpen(true)}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Send 360° Feedback
                   </Button>
-                  <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Button className="w-full justify-start bg-transparent" variant="outline" onClick={() => setIsGiveRecognitionOpen(true)}>
                     <Award className="mr-2 h-4 w-4" />
                     Give Recognition
                   </Button>
-                  <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Button className="w-full justify-start bg-transparent" variant="outline" onClick={() => setIsApproveTimeOffOpen(true)}>
                     <FileCheck className="mr-2 h-4 w-4" />
                     Approve Time Off
                   </Button>
-                  <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Button className="w-full justify-start bg-transparent" variant="outline" onClick={() => setIsAssignTrainingOpen(true)}>
                     <BookOpen className="mr-2 h-4 w-4" />
                     Assign Training
                   </Button>
@@ -928,14 +959,6 @@ export default function HRPage() {
                               Next Review: {getDaysUntilReview(employee.nextReview)}
                             </p>
                           </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              View Reviews
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              Edit
-                            </Button>
-                          </div>
                         </div>
                       ))}
                     </div>
@@ -969,340 +992,371 @@ export default function HRPage() {
           </TabsContent>
 
           <TabsContent value="recruitment">
-            {/* Quick Action Bar */}
-            <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold mb-1">Recruitment Pipeline</h2>
-                <p className="text-sm text-muted-foreground">
-                  Anonymous, bias-free hiring with Zenith-powered matching
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="mr-2 h-4 w-4" />
-                  Filter
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export
-                </Button>
-                <AddCandidateDialog />
-              </div>
-            </div>
-
-            {/* Anonymous Info Badge - Compact */}
-            <div className="mb-6 flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
-              <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                <strong>Anonymous Mode:</strong> All candidates identified by ID only. No personal information displayed.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">142</div>
-                  <p className="text-xs text-muted-foreground">
-                    <TrendingUp className="inline h-3 w-3 mr-1 text-green-500" />
-                    +18% this month
+            {/* Sub-tabs for different recruitment views */}
+            <Tabs defaultValue="pipeline" className="space-y-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold mb-1">Recruitment Management</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Manage candidates from applications to offers
                   </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Zenith-Matched</CardTitle>
-                  <Sparkles className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">38</div>
-                  <p className="text-xs text-muted-foreground">High-fit candidates</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Avg Time to Fill</CardTitle>
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">22</div>
-                  <p className="text-xs text-muted-foreground">
-                    <TrendingDown className="inline h-3 w-3 mr-1 text-green-500" />
-                    -6 days improvement
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Interviews Scheduled</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">12</div>
-                  <p className="text-xs text-muted-foreground">This week</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Top Candidates Section - Collapsible */}
-            <Card className="mb-6">
-              <CardHeader 
-                className="cursor-pointer hover:bg-accent/50 transition-colors"
-                onClick={() => setShowTopCandidates(!showTopCandidates)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        Top Matching Candidates
-                        <Badge variant="secondary" className="ml-2">3 candidates</Badge>
-                      </CardTitle>
-                      <CardDescription>Best fits based on skills, experience, and qualifications</CardDescription>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    {showTopCandidates ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
                 </div>
-              </CardHeader>
-              {showTopCandidates && (
-                <CardContent>
-                  <div className="space-y-3">
-                    {mockCandidates.slice(0, 3).map((candidate) => {
-                    // Get job requirements for this position
-                    const jobReqs = defaultJobRequirements[candidate.position] || defaultJobRequirements["Senior Developer"]
-                    // Calculate real Zenith match score
-                    const zenithScore = calculateZenithMatchScore(candidate, jobReqs)
-                    const scoreColor = zenithScore >= 90 ? "text-green-600" : zenithScore >= 75 ? "text-blue-600" : zenithScore >= 60 ? "text-yellow-600" : "text-gray-600"
-                    const scoreBg = zenithScore >= 90 ? "bg-green-50 dark:bg-green-950" : zenithScore >= 75 ? "bg-blue-50 dark:bg-blue-950" : zenithScore >= 60 ? "bg-yellow-50 dark:bg-yellow-950" : "bg-gray-50 dark:bg-gray-950"
-                    
-                    return (
-                      <div
-                        key={candidate.id}
-                        className="group flex items-start gap-4 p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer bg-background hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-500 hover:shadow-2xl hover:scale-[1.02]"
-                      >
-                        {/* Match Score - Visual Indicator */}
-                        <div className={`flex flex-col items-center justify-center p-3 rounded-lg ${scoreBg} min-w-[80px]`}>
-                          <div className={`text-3xl font-bold ${scoreColor}`}>{zenithScore}</div>
-                          <div className="text-xs text-muted-foreground mt-1">Match</div>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Sparkles className={`h-3 w-3 ${scoreColor}`} />
-                          </div>
-                        </div>
+              </div>
 
-                        {/* Candidate Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-lg">{candidate.candidateId}</h3>
-                            <Badge variant={getStageVariant(candidate.stage)} className={`${getStageColor(candidate.stage)} font-medium`}>
-                              {candidate.stage}
-                            </Badge>
-                          </div>
-                          
-                          <p className="text-sm font-medium text-foreground mb-3">{candidate.position}</p>
-                          
-                          <div className="grid grid-cols-2 gap-2 mb-3">
-                            <div className="flex items-center gap-2 text-sm">
-                              <div className="w-2 h-2 rounded-full bg-primary" />
-                              <span className="text-muted-foreground">Experience:</span>
-                              <span className="font-medium">{candidate.experience}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <div className="w-2 h-2 rounded-full bg-primary" />
-                              <span className="text-muted-foreground">Education:</span>
-                              <span className="font-medium">{candidate.education}</span>
-                            </div>
-                          </div>
+              <TabsList>
+                <TabsTrigger value="pipeline">Candidate Pipeline</TabsTrigger>
+                <TabsTrigger value="applications">Job Applications</TabsTrigger>
+              </TabsList>
 
-                          <div className="flex flex-wrap gap-1.5 mb-3">
-                            {candidate.skills.split(',').slice(0, 4).map((skill, idx) => (
-                              <Badge key={idx} variant="secondary" className="text-xs">
-                                {skill.trim()}
-                              </Badge>
-                            ))}
-                            {candidate.skills.split(',').length > 4 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{candidate.skills.split(',').length - 4} more
-                              </Badge>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              Applied {new Date(candidate.appliedDate).toLocaleDateString()}
-                            </span>
-                            <span>•</span>
-                            <span>{candidate.assignedTo}</span>
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex flex-col gap-2">
-                          <Button size="sm" className="w-full">
-                            <Calendar className="mr-2 h-4 w-4" />
-                            Interview
-                          </Button>
-                          <Button variant="outline" size="sm" className="w-full">
-                            <FileText className="mr-2 h-4 w-4" />
-                            View Resume
-                          </Button>
-                          <Button variant="outline" size="sm" className="w-full">
-                            <ArrowRight className="mr-2 h-4 w-4" />
-                            Next Stage
-                          </Button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-                </CardContent>
-              )}
-            </Card>
-
-            {/* All Candidates - Organized by Stage */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              {/* Original Recruitment Pipeline */}
+              <TabsContent value="pipeline">
+                {/* Quick Action Bar */}
+                <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                   <div>
-                    <CardTitle>All Candidates by Stage</CardTitle>
-                    <CardDescription>View and manage candidates at each hiring stage</CardDescription>
+                    <h3 className="text-xl font-bold mb-1">Recruitment Pipeline</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Anonymous, bias-free hiring with Zenith-powered matching
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <Filter className="mr-2 h-4 w-4" />
+                      Filter
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Download className="mr-2 h-4 w-4" />
+                      Export
+                    </Button>
+                    <AddCandidateDialog />
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {/* Stage Tabs/Filters */}
-                <div className="flex gap-2 mb-6 flex-wrap">
-                  <Button 
-                    variant={candidateStageFilter === "All" ? "default" : "outline"} 
-                    size="sm" 
-                    className="flex items-center gap-2"
-                    onClick={() => setCandidateStageFilter("All")}
-                  >
-                    All Candidates
-                    <Badge variant="secondary" className="ml-1">{mockCandidates.length}</Badge>
-                  </Button>
-                  <Button 
-                    variant={candidateStageFilter === "Applied" ? "default" : "outline"} 
-                    size="sm" 
-                    className="flex items-center gap-2"
-                    onClick={() => setCandidateStageFilter("Applied")}
-                  >
-                    Applied
-                    <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Applied").length}</Badge>
-                  </Button>
-                  <Button 
-                    variant={candidateStageFilter === "Reviewed" ? "default" : "outline"} 
-                    size="sm" 
-                    className="flex items-center gap-2"
-                    onClick={() => setCandidateStageFilter("Reviewed")}
-                  >
-                    Reviewed
-                    <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Reviewed").length}</Badge>
-                  </Button>
-                  <Button 
-                    variant={candidateStageFilter === "Interviewed" ? "default" : "outline"} 
-                    size="sm" 
-                    className="flex items-center gap-2"
-                    onClick={() => setCandidateStageFilter("Interviewed")}
-                  >
-                    Interviewed
-                    <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Interviewed").length}</Badge>
-                  </Button>
-                  <Button 
-                    variant={candidateStageFilter === "Offered" ? "default" : "outline"} 
-                    size="sm" 
-                    className="flex items-center gap-2"
-                    onClick={() => setCandidateStageFilter("Offered")}
-                  >
-                    Offered
-                    <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Offered").length}</Badge>
-                  </Button>
+
+                {/* Anonymous Info Badge - Compact */}
+                <div className="mb-6 flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+                  <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <strong>Anonymous Mode:</strong> All candidates identified by ID only. No personal information displayed.
+                  </p>
                 </div>
 
-                {/* Candidate List */}
-                <div className="space-y-3">
-                  {mockCandidates.filter(candidate => candidateStageFilter === "All" || candidate.stage === candidateStageFilter).length === 0 ? (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p className="text-lg font-medium mb-1">No candidates in this stage</p>
-                      <p className="text-sm">Try selecting a different stage filter</p>
-                    </div>
-                  ) : (
-                    mockCandidates
-                      .filter(candidate => candidateStageFilter === "All" || candidate.stage === candidateStageFilter)
-                      .map((candidate) => {
-                    const jobReqs = defaultJobRequirements[candidate.position] || defaultJobRequirements["Senior Developer"]
-                    const zenithScore = calculateZenithMatchScore(candidate, jobReqs)
-                    
-                    return (
-                      <div
-                        key={candidate.id}
-                        className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-                      >
-                        {/* Compact Score */}
-                        <div className="flex flex-col items-center min-w-[60px]">
-                          <div className={`text-2xl font-bold ${zenithScore >= 90 ? 'text-green-600' : zenithScore >= 75 ? 'text-blue-600' : 'text-gray-600'}`}>
-                            {zenithScore}
-                          </div>
-                          <div className="text-xs text-muted-foreground">match</div>
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">142</div>
+                      <p className="text-xs text-muted-foreground">
+                        <TrendingUp className="inline h-3 w-3 mr-1 text-green-500" />
+                        +18% this month
+                      </p>
+                    </CardContent>
+                  </Card>
 
-                        {/* Candidate Info - Compact */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold">{candidate.candidateId}</h3>
-                            <Badge variant={getStageVariant(candidate.stage)} className={getStageColor(candidate.stage)}>
-                              {candidate.stage}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">•</span>
-                            <span className="text-sm font-medium">{candidate.position}</span>
-                          </div>
-                          
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>{candidate.experience}</span>
-                            <span>•</span>
-                            <span>{candidate.education}</span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {candidate.daysInStage}d in stage
-                            </span>
-                            <span>•</span>
-                            <span>{candidate.assignedTo}</span>
-                          </div>
-                        </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Zenith-Matched</CardTitle>
+                      <Sparkles className="h-4 w-4 text-primary" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">38</div>
+                      <p className="text-xs text-muted-foreground">High-fit candidates</p>
+                    </CardContent>
+                  </Card>
 
-                        {/* Quick Actions */}
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <FileText className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Calendar className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <ArrowRight className="h-4 w-4" />
-                          </Button>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Avg Time to Fill</CardTitle>
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">22</div>
+                      <p className="text-xs text-muted-foreground">
+                        <TrendingDown className="inline h-3 w-3 mr-1 text-green-500" />
+                        -6 days improvement
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Interviews Scheduled</CardTitle>
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">12</div>
+                      <p className="text-xs text-muted-foreground">This week</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Top Candidates Section - Collapsible */}
+                <Card className="mb-6">
+                  <CardHeader 
+                    className="cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => setShowTopCandidates(!showTopCandidates)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        <div>
+                          <CardTitle className="flex items-center gap-2">
+                            Top Matching Candidates
+                            <Badge variant="secondary" className="ml-2">3 candidates</Badge>
+                          </CardTitle>
+                          <CardDescription>Best fits based on skills, experience, and qualifications</CardDescription>
                         </div>
                       </div>
-                    )
-                  })
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        {showTopCandidates ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  {showTopCandidates && (
+                    <CardContent>
+                      <div className="space-y-3">
+                        {mockCandidates.slice(0, 3).map((candidate) => {
+                        // Get job requirements for this position
+                        const jobReqs = defaultJobRequirements[candidate.position] || defaultJobRequirements["Senior Developer"]
+                        // Calculate real Zenith match score
+                        const zenithScore = calculateZenithMatchScore(candidate, jobReqs)
+                        const scoreColor = zenithScore >= 90 ? "text-green-600" : zenithScore >= 75 ? "text-blue-600" : zenithScore >= 60 ? "text-yellow-600" : "text-gray-600"
+                        const scoreBg = zenithScore >= 90 ? "bg-green-50 dark:bg-green-950" : zenithScore >= 75 ? "bg-blue-50 dark:bg-blue-950" : zenithScore >= 60 ? "bg-yellow-50 dark:bg-yellow-950" : "bg-gray-50 dark:bg-gray-950"
+                        
+                        return (
+                          <div
+                            key={candidate.id}
+                            className="group flex items-start gap-4 p-4 border-2 rounded-lg transition-all duration-200 cursor-pointer bg-background hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-500 hover:shadow-2xl hover:scale-[1.02]"
+                          >
+                            {/* Match Score - Visual Indicator */}
+                            <div className={`flex flex-col items-center justify-center p-3 rounded-lg ${scoreBg} min-w-[80px]`}>
+                              <div className={`text-3xl font-bold ${scoreColor}`}>{zenithScore}</div>
+                              <div className="text-xs text-muted-foreground mt-1">Match</div>
+                              <div className="flex items-center gap-1 mt-1">
+                                <Sparkles className={`h-3 w-3 ${scoreColor}`} />
+                              </div>
+                            </div>
+
+                            {/* Candidate Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h3 className="font-semibold text-lg">{candidate.candidateId}</h3>
+                                <Badge variant={getStageVariant(candidate.stage)} className={`${getStageColor(candidate.stage)} font-medium`}>
+                                  {candidate.stage}
+                                </Badge>
+                              </div>
+                              
+                              <p className="text-sm font-medium text-foreground mb-3">{candidate.position}</p>
+                              
+                              <div className="grid grid-cols-2 gap-2 mb-3">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <div className="w-2 h-2 rounded-full bg-primary" />
+                                  <span className="text-muted-foreground">Experience:</span>
+                                  <span className="font-medium">{candidate.experience}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <div className="w-2 h-2 rounded-full bg-primary" />
+                                  <span className="text-muted-foreground">Education:</span>
+                                  <span className="font-medium">{candidate.education}</span>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-wrap gap-1.5 mb-3">
+                                {candidate.skills.split(',').slice(0, 4).map((skill, idx) => (
+                                  <Badge key={idx} variant="secondary" className="text-xs">
+                                    {skill.trim()}
+                                  </Badge>
+                                ))}
+                                {candidate.skills.split(',').length > 4 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{candidate.skills.split(',').length - 4} more
+                                  </Badge>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  Applied {new Date(candidate.appliedDate).toLocaleDateString()}
+                                </span>
+                                <span>•</span>
+                                <span>{candidate.assignedTo}</span>
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex flex-col gap-2">
+                              <Button size="sm" className="w-full">
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Interview
+                              </Button>
+                              <Button variant="outline" size="sm" className="w-full">
+                                <FileText className="mr-2 h-4 w-4" />
+                                View Resume
+                              </Button>
+                              <Button variant="outline" size="sm" className="w-full">
+                                <ArrowRight className="mr-2 h-4 w-4" />
+                                Next Stage
+                              </Button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    </CardContent>
                   )}
+                </Card>
+
+                {/* All Candidates - Organized by Stage */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>All Candidates by Stage</CardTitle>
+                        <CardDescription>View and manage candidates at each hiring stage</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Stage Tabs/Filters */}
+                    <div className="flex gap-2 mb-6 flex-wrap">
+                      <Button 
+                        variant={candidateStageFilter === "All" ? "default" : "outline"} 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        onClick={() => setCandidateStageFilter("All")}
+                      >
+                        All Candidates
+                        <Badge variant="secondary" className="ml-1">{mockCandidates.length}</Badge>
+                      </Button>
+                      <Button 
+                        variant={candidateStageFilter === "Applied" ? "default" : "outline"} 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        onClick={() => setCandidateStageFilter("Applied")}
+                      >
+                        Applied
+                        <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Applied").length}</Badge>
+                      </Button>
+                      <Button 
+                        variant={candidateStageFilter === "Reviewed" ? "default" : "outline"} 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        onClick={() => setCandidateStageFilter("Reviewed")}
+                      >
+                        Reviewed
+                        <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Reviewed").length}</Badge>
+                      </Button>
+                      <Button 
+                        variant={candidateStageFilter === "Interviewed" ? "default" : "outline"} 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        onClick={() => setCandidateStageFilter("Interviewed")}
+                      >
+                        Interviewed
+                        <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Interviewed").length}</Badge>
+                      </Button>
+                      <Button 
+                        variant={candidateStageFilter === "Offered" ? "default" : "outline"} 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        onClick={() => setCandidateStageFilter("Offered")}
+                      >
+                        Offered
+                        <Badge variant="secondary" className="ml-1">{mockCandidates.filter(c => c.stage === "Offered").length}</Badge>
+                      </Button>
+                    </div>
+
+                    {/* Candidate List */}
+                    <div className="space-y-3">
+                      {mockCandidates.filter(candidate => candidateStageFilter === "All" || candidate.stage === candidateStageFilter).length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                          <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                          <p className="text-lg font-medium mb-1">No candidates in this stage</p>
+                          <p className="text-sm">Try selecting a different stage filter</p>
+                        </div>
+                      ) : (
+                        mockCandidates
+                          .filter(candidate => candidateStageFilter === "All" || candidate.stage === candidateStageFilter)
+                          .map((candidate) => {
+                        const jobReqs = defaultJobRequirements[candidate.position] || defaultJobRequirements["Senior Developer"]
+                        const zenithScore = calculateZenithMatchScore(candidate, jobReqs)
+                        
+                        return (
+                          <div
+                            key={candidate.id}
+                            className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                          >
+                            {/* Compact Score */}
+                            <div className="flex flex-col items-center min-w-[60px]">
+                              <div className={`text-2xl font-bold ${zenithScore >= 90 ? 'text-green-600' : zenithScore >= 75 ? 'text-blue-600' : 'text-gray-600'}`}>
+                                {zenithScore}
+                              </div>
+                              <div className="text-xs text-muted-foreground">match</div>
+                            </div>
+
+                            {/* Candidate Info - Compact */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold">{candidate.candidateId}</h3>
+                                <Badge variant={getStageVariant(candidate.stage)} className={getStageColor(candidate.stage)}>
+                                  {candidate.stage}
+                                </Badge>
+                                <span className="text-sm text-muted-foreground">•</span>
+                                <span className="text-sm font-medium">{candidate.position}</span>
+                              </div>
+                              
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <span>{candidate.experience}</span>
+                                <span>•</span>
+                                <span>{candidate.education}</span>
+                                <span>•</span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {candidate.daysInStage}d in stage
+                                </span>
+                                <span>•</span>
+                                <span>{candidate.assignedTo}</span>
+                              </div>
+                            </div>
+
+                            {/* Quick Actions */}
+                            <div className="flex gap-2">
+                              <Button variant="ghost" size="sm">
+                                <FileText className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                <Calendar className="h-4 w-4" />
+                              </Button>
+                              <Button variant="outline" size="sm">
+                                <ArrowRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )
+                      })
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* New Job Applications System */}
+              <TabsContent value="applications">
+                <div className="mb-6 flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
+                  <Shield className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    <strong>External Applications:</strong> Applications from public careers page. Personal info hidden until revealed.
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                <RecruitmentDashboard />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="employees">
@@ -1409,15 +1463,36 @@ export default function HRPage() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedEmployee(employee)
+                            setIsFeedbackDialogOpen(true)
+                          }}
+                        >
                           <MessageSquare className="mr-2 h-4 w-4" />
                           Feedback
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedEmployee(employee)
+                            setIsGoalsDialogOpen(true)
+                          }}
+                        >
                           <Target className="mr-2 h-4 w-4" />
                           Goals
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedEmployee(employee)
+                            setIsProfileDialogOpen(true)
+                          }}
+                        >
                           View Profile
                         </Button>
                       </div>
@@ -1558,13 +1633,34 @@ export default function HRPage() {
                         </div>
 
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedReview(review)
+                              setIsReviewDetailsOpen(true)
+                            }}
+                          >
                             View Details
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedReview(review)
+                              setIsAddReviewDialogOpen(true)
+                            }}
+                          >
                             Add Review
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedReview(review)
+                              setIsReviewHistoryOpen(true)
+                            }}
+                          >
                             View History
                           </Button>
                         </div>
@@ -1691,10 +1787,15 @@ export default function HRPage() {
                         >
                           Update Progress
                         </Button>
-                        <Button variant="outline" size="sm">
-                          View Details
-                        </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedGoal(goal)
+                            setGoalComment('')
+                            setIsAddCommentOpen(true)
+                          }}
+                        >
                           Add Comment
                         </Button>
                       </div>
@@ -2243,7 +2344,7 @@ export default function HRPage() {
                       <Users className="h-5 w-5 text-primary" />
                       <CardTitle>Mentorship Program</CardTitle>
                     </div>
-                    <Button>
+                    <Button onClick={() => setIsCreateMatchOpen(true)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Create Match
                     </Button>
@@ -2333,7 +2434,7 @@ export default function HRPage() {
                       <Award className="h-5 w-5 text-primary" />
                       <CardTitle>Recognition & Achievements</CardTitle>
                     </div>
-                    <Button>
+                    <Button onClick={() => setIsGiveRecognitionOpen(true)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Give Recognition
                     </Button>
@@ -2632,6 +2733,1573 @@ export default function HRPage() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Employee Profile Dialog */}
+        <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+          <DialogContent className="max-w-5xl w-[95vw] max-h-[90vh] overflow-hidden flex flex-col p-6">
+            <DialogHeader className="pb-4 border-b flex-shrink-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <DialogTitle className="text-2xl mb-2 truncate">{selectedEmployee?.name}</DialogTitle>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {selectedEmployee && <Badge variant={getStatusVariant(selectedEmployee.status)}>{selectedEmployee.status}</Badge>}
+                    {selectedEmployee && selectedEmployee.performanceScore && selectedEmployee.performanceScore >= 4.5 && (
+                      <Badge variant="outline" className="border-yellow-500 text-yellow-500 bg-yellow-500/10">
+                        <Star className="h-4 w-4 fill-yellow-500 mr-1" />
+                        Top Performer
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button className="mx-0 my-3.5 bg-transparent" variant="outline" size="sm">
+                    <Mail className="w-4 h-4" />
+                  </Button>
+                  <Button className="my-3.5 bg-transparent" variant="outline" size="sm">
+                    <Phone className="w-4 h-4" />
+                  </Button>
+                  <Button className="my-3.5" size="sm">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </DialogHeader>
+
+            {selectedEmployee && (
+              <Tabs defaultValue="overview" className="flex-1 overflow-hidden flex flex-col mt-2">
+                <TabsList className="w-full justify-start border-b rounded-none bg-transparent p-0 flex-shrink-0 mb-2">
+                  <TabsTrigger
+                    value="overview"
+                    className="border-b-2 border-transparent data-[state=active]:border-primary text-base rounded-lg px-4"
+                  >
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="performance"
+                    className="border-b-2 border-transparent data-[state=active]:border-primary text-base rounded-lg px-4"
+                  >
+                    Performance
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="goals"
+                    className="border-b-2 border-transparent data-[state=active]:border-primary text-base rounded-lg px-4"
+                  >
+                    Goals
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="history"
+                    className="border-b-2 border-transparent data-[state=active]:border-primary text-base rounded-lg px-4"
+                  >
+                    History
+                  </TabsTrigger>
+                </TabsList>
+
+                <div className="flex-1 overflow-y-auto overflow-x-hidden pt-2 px-1">
+
+                  <TabsContent value="overview" className="mt-0 space-y-5">
+                    {/* Key Metrics Grid */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      <Card className="min-w-0">
+                        <CardContent className="pt-5 pb-5 text-center px-3">
+                          <div className="text-2xl font-bold mb-1">
+                            {selectedEmployee.performanceScore ? `${selectedEmployee.performanceScore}/5.0` : 'N/A'}
+                          </div>
+                          <p className="text-sm text-muted-foreground whitespace-nowrap">Performance</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="min-w-0">
+                        <CardContent className="pt-5 pb-5 text-center px-3">
+                          <div className="text-2xl font-bold mb-1">
+                            {mockGoals.filter(g => g.employeeId === selectedEmployee.id && g.status === 'completed').length}/
+                            {mockGoals.filter(g => g.employeeId === selectedEmployee.id).length}
+                          </div>
+                          <p className="text-sm text-muted-foreground whitespace-nowrap">Goals</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="min-w-0">
+                        <CardContent className="pt-5 pb-5 text-center px-3">
+                          <div className="text-2xl font-bold mb-1 whitespace-nowrap">2.5 yrs</div>
+                          <p className="text-sm text-muted-foreground whitespace-nowrap">Tenure</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="min-w-0">
+                        <CardContent className="pt-5 pb-5 text-center px-3">
+                          <div className="text-xl font-bold mb-1">{getDaysUntilReview(selectedEmployee.nextReview)}</div>
+                          <p className="text-sm text-muted-foreground whitespace-nowrap">Next Review</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Employee Details */}
+                    <Card className="overflow-hidden">
+                      <CardHeader className="pb-4">
+                        <CardTitle className="text-lg">Employee Information</CardTitle>
+                      </CardHeader>
+                      <CardContent className="px-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                          <div className="flex items-start gap-3 min-w-0">
+                            <Building className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground mb-1">Department</p>
+                              <p className="text-base font-medium break-words">{selectedEmployee.department}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 min-w-0">
+                            <User className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground mb-1">Position</p>
+                              <p className="text-base font-medium break-words">{selectedEmployee.position}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 min-w-0">
+                            <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground mb-1">Employee ID</p>
+                              <p className="text-base font-medium">EMP-{selectedEmployee.id.toString().padStart(4, '0')}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 min-w-0">
+                            <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground mb-1">Employment Type</p>
+                              <p className="text-base font-medium">Full-time</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 min-w-0">
+                            <User className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground mb-1">Manager</p>
+                              <p className="text-base font-medium break-words">Sarah Williams</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 min-w-0">
+                            <Building className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground mb-1">Location</p>
+                              <p className="text-base font-medium break-words">San Francisco, CA</p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Contact Information */}
+                    <Card className="overflow-hidden">
+                      <CardHeader className="pb-4">
+                        <CardTitle className="text-lg">Contact Information</CardTitle>
+                      </CardHeader>
+                      <CardContent className="px-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                          <div className="flex items-start gap-3 min-w-0">
+                            <Mail className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground mb-1">Email</p>
+                              <p className="text-base font-medium break-all">{selectedEmployee.name.toLowerCase().replace(' ', '.')}@company.com</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 min-w-0">
+                            <Phone className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-muted-foreground mb-1">Phone</p>
+                              <p className="text-base font-medium">+1 (555) 123-4567</p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="performance" className="mt-0 space-y-4">
+                    <Card>
+                      <CardHeader className="pb-4">
+                        <CardTitle className="text-lg">Performance Reviews</CardTitle>
+                        <p className="text-sm text-muted-foreground">Historical performance data</p>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {mockPerformanceReviews
+                          .filter(review => review.employeeId === selectedEmployee.id)
+                          .map((review) => (
+                            <div key={review.id} className="p-4 border rounded-lg">
+                              <div className="flex items-center justify-between mb-4">
+                                <div>
+                                  <p className="text-base font-medium">Latest Review</p>
+                                  <p className="text-sm text-muted-foreground">{review.latestReview}</p>
+                                </div>
+                                <Badge variant={review.status === 'on-time' ? 'default' : 'secondary'} className="text-sm flex-shrink-0">
+                                  {review.status}
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-2">Collaboration</p>
+                                  <div className="flex items-center gap-1">
+                                    {Array.from({ length: review.collaboration }).map((_, i) => (
+                                      <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-2">Accountability</p>
+                                  <div className="flex items-center gap-1">
+                                    {Array.from({ length: review.accountability }).map((_, i) => (
+                                      <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-2">Leadership</p>
+                                  <div className="flex items-center gap-1">
+                                    {Array.from({ length: review.leadership }).map((_, i) => (
+                                      <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-muted-foreground mb-2">Trustworthy</p>
+                                  <div className="flex items-center gap-1">
+                                    {Array.from({ length: review.trustworthy }).map((_, i) => (
+                                      <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="goals" className="mt-0 space-y-4">
+                    {mockGoals
+                      .filter(goal => goal.employeeId === selectedEmployee.id)
+                      .map((goal) => (
+                        <Card key={goal.id}>
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <CardTitle className="text-base truncate">{goal.goal}</CardTitle>
+                                <p className="text-sm text-muted-foreground mt-1 truncate">{goal.category}</p>
+                              </div>
+                              <Badge 
+                                variant="outline"
+                                className={`flex-shrink-0 text-sm ${
+                                  goal.status === 'active' ? 'border-blue-500 text-blue-600 bg-blue-500/10' :
+                                  goal.status === 'completed' ? 'border-green-500 text-green-600 bg-green-500/10' :
+                                  goal.status === 'at-risk' ? 'border-red-500 text-red-600 bg-red-500/10' :
+                                  ''
+                                }`}
+                              >
+                                {goal.status}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between text-sm mb-2">
+                                <span className="text-muted-foreground">Progress</span>
+                                <span className="font-medium text-base">{goal.progress}%</span>
+                              </div>
+                              <Progress value={goal.progress} className="h-2" />
+                              <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
+                                <span className="truncate">Due: {goal.dueDate}</span>
+                                <span className="truncate">Created: {goal.createdDate}</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    {mockGoals.filter(goal => goal.employeeId === selectedEmployee.id).length === 0 && (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Target className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No goals assigned yet</p>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="history" className="mt-0 space-y-4">
+                    <Card>
+                      <CardHeader className="pb-4">
+                        <CardTitle className="text-lg">Review History</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between text-base">
+                          <span className="text-muted-foreground">Last Review</span>
+                          <span className="font-medium">{selectedEmployee.lastReview || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-base">
+                          <span className="text-muted-foreground">Next Review</span>
+                          <span className="font-medium">{selectedEmployee.nextReview}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-base">
+                          <span className="text-muted-foreground">Review Cycle</span>
+                          <span className="font-medium">Quarterly</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </div>
+              </Tabs>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Employee Feedback Dialog */}
+        <Dialog open={isFeedbackDialogOpen} onOpenChange={setIsFeedbackDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Give Feedback</DialogTitle>
+              <DialogDescription>
+                Provide feedback for {selectedEmployee?.name}
+              </DialogDescription>
+            </DialogHeader>
+            {selectedEmployee && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="feedback-type">Feedback Type</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recognition">Recognition</SelectItem>
+                      <SelectItem value="improvement">Area for Improvement</SelectItem>
+                      <SelectItem value="general">General Feedback</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="feedback-message">Feedback Message</Label>
+                  <Textarea 
+                    id="feedback-message"
+                    placeholder="Write your feedback here..."
+                    rows={6}
+                  />
+                </div>
+                <div>
+                  <Label>Visibility</Label>
+                  <Select defaultValue="manager">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="employee">Visible to Employee</SelectItem>
+                      <SelectItem value="manager">Manager Only</SelectItem>
+                      <SelectItem value="hr">HR Only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsFeedbackDialogOpen(false)}>Cancel</Button>
+                  <Button onClick={() => {
+                    alert("Feedback submitted successfully!")
+                    setIsFeedbackDialogOpen(false)
+                  }}>
+                    Submit Feedback
+                  </Button>
+                </DialogFooter>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Employee Goals Dialog */}
+        <Dialog open={isGoalsDialogOpen} onOpenChange={setIsGoalsDialogOpen}>
+          <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto border-4">
+            <DialogHeader>
+              <DialogTitle>Employee Goals</DialogTitle>
+              <DialogDescription>
+                View and manage goals for {selectedEmployee?.name}
+              </DialogDescription>
+            </DialogHeader>
+            {selectedEmployee && (
+              <div className="space-y-4">
+                {mockGoals
+                  .filter(goal => goal.employeeId === selectedEmployee.id)
+                  .map((goal) => (
+                    <Card key={goal.id}>
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-base">{goal.goal}</CardTitle>
+                            <CardDescription className="mt-1">{goal.department} • {goal.category}</CardDescription>
+                          </div>
+                          <Badge 
+                            variant="outline" 
+                            className={
+                              goal.status === 'active' ? 'border-blue-500 text-blue-600 bg-blue-500/10' :
+                              goal.status === 'completed' ? 'border-green-500 text-green-600 bg-green-500/10' :
+                              goal.status === 'at-risk' ? 'border-red-500 text-red-600 bg-red-500/10' :
+                              ''
+                            }
+                          >
+                            {goal.status}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Progress</span>
+                            <span className="font-medium">{goal.progress}%</span>
+                          </div>
+                          <Progress value={goal.progress} className="h-2" />
+                          <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
+                            <span>
+                              <Calendar className="inline h-3 w-3 mr-1" />
+                              Due: {goal.dueDate}
+                            </span>
+                            <span className="capitalize">{goal.category}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                {mockGoals.filter(goal => goal.employeeId === selectedEmployee.id).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>No goals assigned yet</p>
+                  </div>
+                )}
+                <DialogFooter className="pt-4">
+                  <Button variant="outline" onClick={() => setIsGoalsDialogOpen(false)}>Close</Button>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add New Goal
+                  </Button>
+                </DialogFooter>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Review Details Dialog */}
+        <Dialog open={isReviewDetailsOpen} onOpenChange={setIsReviewDetailsOpen}>
+          <DialogContent className="max-w-3x1 max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Performance Review Details</DialogTitle>
+              <DialogDescription>
+                Detailed performance review for {selectedReview?.employeeName}
+              </DialogDescription>
+            </DialogHeader>
+            {selectedReview && (
+              <div className="space-y-6">
+                {/* Employee Info */}
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold">{selectedReview.employeeName}</h3>
+                        <p className="text-sm text-muted-foreground">{selectedReview.department}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-3xl font-bold ${getRatingColor(Number(calculateOverallRating(selectedReview)))}`}>
+                          {calculateOverallRating(selectedReview)}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Overall Rating</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Performance Ratings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Performance Ratings</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-2">Collaboration</p>
+                        <div className="flex items-center gap-2">
+                          <div className={`text-2xl font-bold ${getRatingColor(selectedReview.collaboration)}`}>
+                            {selectedReview.collaboration}
+                          </div>
+                          <div className="flex gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`w-4 h-4 ${i < selectedReview.collaboration ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'}`} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-2">Accountability</p>
+                        <div className="flex items-center gap-2">
+                          <div className={`text-2xl font-bold ${getRatingColor(selectedReview.accountability)}`}>
+                            {selectedReview.accountability}
+                          </div>
+                          <div className="flex gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`w-4 h-4 ${i < selectedReview.accountability ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'}`} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-2">Trustworthy</p>
+                        <div className="flex items-center gap-2">
+                          <div className={`text-2xl font-bold ${getRatingColor(selectedReview.trustworthy)}`}>
+                            {selectedReview.trustworthy}
+                          </div>
+                          <div className="flex gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`w-4 h-4 ${i < selectedReview.trustworthy ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'}`} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-2">Leadership</p>
+                        <div className="flex items-center gap-2">
+                          <div className={`text-2xl font-bold ${getRatingColor(selectedReview.leadership)}`}>
+                            {selectedReview.leadership}
+                          </div>
+                          <div className="flex gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`w-4 h-4 ${i < selectedReview.leadership ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'}`} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Review Timeline */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Review Timeline</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Latest Review</span>
+                      <span className="text-sm font-medium">{new Date(selectedReview.latestReview).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Next Review</span>
+                      <span className="text-sm font-medium">{new Date(selectedReview.nextReview).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Status</span>
+                      {getReviewStatusBadge(selectedReview.status)}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Trend</span>
+                      <div className="flex items-center gap-2">
+                        {getTrendIcon(selectedReview.trend)}
+                        <span className="text-sm capitalize">{selectedReview.trend}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsReviewDetailsOpen(false)}>Close</Button>
+              <Button onClick={() => {
+                setIsReviewDetailsOpen(false)
+                setIsAddReviewDialogOpen(true)
+              }}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add New Review
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Review Dialog */}
+        <Dialog open={isAddReviewDialogOpen} onOpenChange={setIsAddReviewDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add Performance Review</DialogTitle>
+              <DialogDescription>
+                Create a new performance review for {selectedReview?.employeeName}
+              </DialogDescription>
+            </DialogHeader>
+            {selectedReview && (
+              <div className="space-y-6">
+                {/* Review Period */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="review-period">Review Period</Label>
+                    <Select defaultValue="q4-2024">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="q4-2024">Q4 2024</SelectItem>
+                        <SelectItem value="q1-2025">Q1 2025</SelectItem>
+                        <SelectItem value="annual-2024">Annual 2024</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="review-type">Review Type</Label>
+                    <Select defaultValue="quarterly">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="quarterly">Quarterly Review</SelectItem>
+                        <SelectItem value="annual">Annual Review</SelectItem>
+                        <SelectItem value="probation">Probation Review</SelectItem>
+                        <SelectItem value="promotion">Promotion Review</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Performance Ratings */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Performance Ratings (1-5)</h3>
+                  
+                  <div>
+                    <Label htmlFor="collaboration">Collaboration</Label>
+                    <Select defaultValue="4">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5 - Exceptional</SelectItem>
+                        <SelectItem value="4">4 - Exceeds Expectations</SelectItem>
+                        <SelectItem value="3">3 - Meets Expectations</SelectItem>
+                        <SelectItem value="2">2 - Needs Improvement</SelectItem>
+                        <SelectItem value="1">1 - Unsatisfactory</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="accountability">Accountability</Label>
+                    <Select defaultValue="4">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5 - Exceptional</SelectItem>
+                        <SelectItem value="4">4 - Exceeds Expectations</SelectItem>
+                        <SelectItem value="3">3 - Meets Expectations</SelectItem>
+                        <SelectItem value="2">2 - Needs Improvement</SelectItem>
+                        <SelectItem value="1">1 - Unsatisfactory</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="trustworthy">Trustworthy</Label>
+                    <Select defaultValue="4">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5 - Exceptional</SelectItem>
+                        <SelectItem value="4">4 - Exceeds Expectations</SelectItem>
+                        <SelectItem value="3">3 - Meets Expectations</SelectItem>
+                        <SelectItem value="2">2 - Needs Improvement</SelectItem>
+                        <SelectItem value="1">1 - Unsatisfactory</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="leadership">Leadership</Label>
+                    <Select defaultValue="4">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5 - Exceptional</SelectItem>
+                        <SelectItem value="4">4 - Exceeds Expectations</SelectItem>
+                        <SelectItem value="3">3 - Meets Expectations</SelectItem>
+                        <SelectItem value="2">2 - Needs Improvement</SelectItem>
+                        <SelectItem value="1">1 - Unsatisfactory</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Comments */}
+                <div>
+                  <Label htmlFor="strengths">Strengths & Achievements</Label>
+                  <Textarea 
+                    id="strengths"
+                    placeholder="Highlight key strengths and notable achievements during this period..."
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="improvements">Areas for Improvement</Label>
+                  <Textarea 
+                    id="improvements"
+                    placeholder="Identify areas where the employee can improve and grow..."
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="goals">Goals for Next Period</Label>
+                  <Textarea 
+                    id="goals"
+                    placeholder="Set clear, actionable goals for the next review period..."
+                    rows={4}
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddReviewDialogOpen(false)}>Cancel</Button>
+              <Button onClick={() => {
+                alert("Performance review submitted successfully!")
+                setIsAddReviewDialogOpen(false)
+              }}>
+                Submit Review
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Review History Dialog */}
+        <Dialog open={isReviewHistoryOpen} onOpenChange={setIsReviewHistoryOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Review History</DialogTitle>
+              <DialogDescription>
+                Complete performance review history for {selectedReview?.employeeName}
+              </DialogDescription>
+            </DialogHeader>
+            {selectedReview && (
+              <div className="space-y-4">
+                {/* Mock historical reviews */}
+                {[
+                  {
+                    period: "Q4 2024",
+                    date: "2024-12-15",
+                    overall: 4.3,
+                    collaboration: 4,
+                    accountability: 5,
+                    trustworthy: 4,
+                    leadership: 4,
+                    reviewer: "Sarah Williams",
+                  },
+                  {
+                    period: "Q3 2024",
+                    date: "2024-09-15",
+                    overall: 4.0,
+                    collaboration: 4,
+                    accountability: 4,
+                    trustworthy: 4,
+                    leadership: 4,
+                    reviewer: "Sarah Williams",
+                  },
+                  {
+                    period: "Q2 2024",
+                    date: "2024-06-15",
+                    overall: 3.8,
+                    collaboration: 4,
+                    accountability: 4,
+                    trustworthy: 3,
+                    leadership: 4,
+                    reviewer: "Sarah Williams",
+                  },
+                ].map((review, idx) => (
+                  <Card key={idx}>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="font-semibold">{review.period}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(review.date).toLocaleDateString()} • Reviewed by {review.reviewer}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-2xl font-bold ${getRatingColor(review.overall)}`}>
+                            {review.overall}
+                          </div>
+                          <p className="text-xs text-muted-foreground">Overall</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-4 gap-4">
+                        <div className="text-center p-3 border rounded-lg">
+                          <div className={`text-xl font-bold ${getRatingColor(review.collaboration)}`}>
+                            {review.collaboration}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Collaboration</p>
+                        </div>
+                        <div className="text-center p-3 border rounded-lg">
+                          <div className={`text-xl font-bold ${getRatingColor(review.accountability)}`}>
+                            {review.accountability}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Accountability</p>
+                        </div>
+                        <div className="text-center p-3 border rounded-lg">
+                          <div className={`text-xl font-bold ${getRatingColor(review.trustworthy)}`}>
+                            {review.trustworthy}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Trustworthy</p>
+                        </div>
+                        <div className="text-center p-3 border rounded-lg">
+                          <div className={`text-xl font-bold ${getRatingColor(review.leadership)}`}>
+                            {review.leadership}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Leadership</p>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex justify-end">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setIsReviewHistoryOpen(false)
+                            setIsReviewDetailsOpen(true)
+                          }}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          View Full Review
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsReviewHistoryOpen(false)}>Close</Button>
+              <Button onClick={() => {
+                setIsReviewHistoryOpen(false)
+                setIsAddReviewDialogOpen(true)
+              }}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add New Review
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Goal Details Dialog */}
+        <Dialog open={isGoalDetailsOpen} onOpenChange={setIsGoalDetailsOpen}>
+          <DialogContent className="w-[96vw] max-w-none max-h-[95vh] overflow-y-auto overflow-x-hidden p-8">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="text-2xl">Goal Details</DialogTitle>
+              <DialogDescription>
+                Detailed information and progress tracking for this goal
+              </DialogDescription>
+            </DialogHeader>
+            {selectedGoal && (
+              <div className="space-y-6 overflow-x-hidden">
+                {/* Goal Header */}
+                <Card className="border-2 min-w-0">
+                  <CardContent className="pt-6 pb-6">
+                    <div className="flex items-start justify-between gap-6 min-w-0">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-2xl font-bold mb-3 break-words">{selectedGoal.goal}</h3>
+                        <div className="flex items-center gap-4 text-base text-muted-foreground flex-wrap">
+                          <span className="font-medium">{selectedGoal.employeeName}</span>
+                          <span>•</span>
+                          <span>{selectedGoal.department}</span>
+                          <span>•</span>
+                          <Badge variant="secondary" className="text-sm">{selectedGoal.category}</Badge>
+                        </div>
+                      </div>
+                      <Badge className={getGoalStatusColor(selectedGoal.status) + " text-base px-4 py-2 flex-shrink-0"}>
+                        {getGoalStatusIcon(selectedGoal.status)}
+                        <span className="ml-2 whitespace-nowrap">{selectedGoal.status}</span>
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="grid grid-cols-2 gap-6 min-w-0 overflow-hidden">
+                  {/* Left Column */}
+                  <div className="space-y-6 min-w-0">
+                    {/* Progress Card */}
+                    <Card className="min-w-0 overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="text-lg">Progress</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-5">
+                        <div className="flex items-center justify-between flex-wrap gap-3">
+                          <span className="text-base text-muted-foreground whitespace-nowrap">Current Progress</span>
+                          <span className="text-5xl font-bold">{selectedGoal.progress}%</span>
+                        </div>
+                        <Progress value={selectedGoal.progress} className="h-4" />
+                        <div className="grid grid-cols-2 gap-4 pt-3 min-w-0">
+                          <div className="p-4 border rounded-lg min-w-0">
+                            <p className="text-sm text-muted-foreground mb-2">Created</p>
+                            <p className="text-base font-medium break-words">{new Date(selectedGoal.createdDate).toLocaleDateString()}</p>
+                          </div>
+                          <div className="p-4 border rounded-lg min-w-0">
+                            <p className="text-sm text-muted-foreground mb-2">Due Date</p>
+                            <p className="text-base font-medium break-words">{new Date(selectedGoal.dueDate).toLocaleDateString()}</p>
+                            <p className="text-sm text-muted-foreground mt-1 break-words">{getDaysUntilDue(selectedGoal.dueDate)}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Goal Timeline */}
+                    <Card className="min-w-0 overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="text-lg">Timeline & Milestones</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-5">
+                          {/* Mock timeline data */}
+                          {[
+                            { date: selectedGoal.createdDate, event: "Goal Created", progress: 0 },
+                            { date: "2024-12-01", event: "First Review", progress: 25 },
+                            { date: "2025-01-01", event: "Progress Update", progress: selectedGoal.progress },
+                          ].map((item, idx) => (
+                            <div key={idx} className="flex items-start gap-4 min-w-0">
+                              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <CheckCircle2 className="h-6 w-6 text-primary" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-base break-words">{item.event}</h4>
+                                <p className="text-base text-muted-foreground break-words">{new Date(item.date).toLocaleDateString()}</p>
+                                {item.progress > 0 && (
+                                  <p className="text-base mt-1">Progress: {item.progress}%</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="min-w-0">
+                    {/* Comments Section */}
+                    <Card className="h-full min-w-0 overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="text-lg">Comments & Notes</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {/* Mock comments */}
+                          {[
+                            { author: "Sarah Williams", date: "2024-12-15", comment: "Great progress so far! Keep up the excellent work." },
+                            { author: selectedGoal.employeeName, date: "2024-12-20", comment: "Working on the final deliverables. Expect to complete by end of month." },
+                          ].map((comment, idx) => (
+                            <div key={idx} className="p-4 border rounded-lg bg-accent/30 min-w-0">
+                              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                                <span className="font-semibold text-base break-words">{comment.author}</span>
+                                <span className="text-sm text-muted-foreground whitespace-nowrap">{new Date(comment.date).toLocaleDateString()}</span>
+                              </div>
+                              <p className="text-base break-words">{comment.comment}</p>
+                            </div>
+                          ))}
+                          <Button 
+                            variant="outline" 
+                            size="default" 
+                            className="w-full mt-4"
+                            onClick={() => {
+                              setIsGoalDetailsOpen(false)
+                              setIsAddCommentOpen(true)
+                            }}
+                          >
+                            <Plus className="mr-2 h-5 w-5" />
+                            Add Comment
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter className="gap-3">
+              <Button variant="outline" size="lg" onClick={() => setIsGoalDetailsOpen(false)}>Close</Button>
+              <Button size="lg" onClick={() => {
+                setIsGoalDetailsOpen(false)
+                setEditingGoal(selectedGoal.id)
+                setGoalProgress(selectedGoal.progress)
+              }}>
+                <Target className="mr-2 h-5 w-5" />
+                Update Progress
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Comment Dialog */}
+        <Dialog open={isAddCommentOpen} onOpenChange={setIsAddCommentOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Add Comment</DialogTitle>
+              <DialogDescription>
+                Add a comment or note about this goal
+              </DialogDescription>
+            </DialogHeader>
+            {selectedGoal && (
+              <div className="space-y-4">
+                {/* Goal Summary */}
+                <Card>
+                  <CardContent className="pt-4">
+                    <h4 className="font-medium mb-1">{selectedGoal.goal}</h4>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>{selectedGoal.employeeName}</span>
+                      <span>•</span>
+                      <Badge className={getGoalStatusColor(selectedGoal.status)} variant="outline">
+                        {selectedGoal.status}
+                      </Badge>
+                      <span>•</span>
+                      <span>{selectedGoal.progress}% complete</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Comment Input */}
+                <div>
+                  <Label htmlFor="comment">Comment</Label>
+                  <Textarea 
+                    id="comment"
+                    placeholder="Add your comment or notes here..."
+                    rows={6}
+                    value={goalComment}
+                    onChange={(e) => setGoalComment(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    This comment will be visible to the employee and their manager.
+                  </p>
+                </div>
+
+                {/* Comment Type */}
+                <div>
+                  <Label htmlFor="comment-type">Comment Type</Label>
+                  <Select defaultValue="general">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">General Update</SelectItem>
+                      <SelectItem value="feedback">Feedback</SelectItem>
+                      <SelectItem value="milestone">Milestone Achieved</SelectItem>
+                      <SelectItem value="concern">Concern/Blocker</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setIsAddCommentOpen(false)
+                setGoalComment('')
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  if (goalComment.trim()) {
+                    alert("Comment added successfully!")
+                    setIsAddCommentOpen(false)
+                    setGoalComment('')
+                  } else {
+                    alert("Please enter a comment before submitting.")
+                  }
+                }}
+                disabled={!goalComment.trim()}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Add Comment
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Mentorship Match Dialog */}
+        <Dialog open={isCreateMatchOpen} onOpenChange={setIsCreateMatchOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Create Mentorship Match</DialogTitle>
+              <DialogDescription>
+                Use Zenith AI to find the best mentor-mentee matches
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="mentor">Select Mentor</Label>
+                <Select>
+                  <SelectTrigger id="mentor">
+                    <SelectValue placeholder="Choose mentor..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mentor1">Michael Chen - Engineering Lead</SelectItem>
+                    <SelectItem value="mentor2">Sarah Johnson - Product Manager</SelectItem>
+                    <SelectItem value="mentor3">Diane Young - Senior Designer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="mentee">Select Mentee</Label>
+                <Select>
+                  <SelectTrigger id="mentee">
+                    <SelectValue placeholder="Choose mentee..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mentee1">Guy Hawkins - Junior Developer</SelectItem>
+                    <SelectItem value="mentee2">Jane Cooper - Associate Designer</SelectItem>
+                    <SelectItem value="mentee3">Robert Fox - Sales Associate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="focus-area">Focus Area</Label>
+                <Select>
+                  <SelectTrigger id="focus-area">
+                    <SelectValue placeholder="Select focus area..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="technical">Technical Skills</SelectItem>
+                    <SelectItem value="leadership">Leadership Development</SelectItem>
+                    <SelectItem value="communication">Communication Skills</SelectItem>
+                    <SelectItem value="career">Career Growth</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="duration">Duration</Label>
+                <Select>
+                  <SelectTrigger id="duration">
+                    <SelectValue placeholder="Select duration..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3 months</SelectItem>
+                    <SelectItem value="6">6 months</SelectItem>
+                    <SelectItem value="12">12 months</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsCreateMatchOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                alert("Mentorship match created successfully!")
+                setIsCreateMatchOpen(false)
+              }}>
+                Create Match
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Give Recognition Dialog */}
+        <Dialog open={isGiveRecognitionOpen} onOpenChange={setIsGiveRecognitionOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Give Recognition</DialogTitle>
+              <DialogDescription>
+                Recognize team members for their contributions
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="from">From</Label>
+                <Select>
+                  <SelectTrigger id="from">
+                    <SelectValue placeholder="Select your name..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user1">You (Manager)</SelectItem>
+                    <SelectItem value="user2">Michael Chen</SelectItem>
+                    <SelectItem value="user3">Sarah Johnson</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="to">To</Label>
+                <Select>
+                  <SelectTrigger id="to">
+                    <SelectValue placeholder="Select recipient..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="emp1">Diane Young</SelectItem>
+                    <SelectItem value="emp2">Guy Hawkins</SelectItem>
+                    <SelectItem value="emp3">Robert Fox</SelectItem>
+                    <SelectItem value="emp4">Jane Cooper</SelectItem>
+                    <SelectItem value="emp5">Michael Chen</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="recognition-type">Recognition Type</Label>
+                <Select>
+                  <SelectTrigger id="recognition-type">
+                    <SelectValue placeholder="Select type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="peer">Peer Recognition</SelectItem>
+                    <SelectItem value="manager">Manager Recognition</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <Select>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select category..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="innovation">Innovation</SelectItem>
+                    <SelectItem value="excellence">Excellence</SelectItem>
+                    <SelectItem value="teamwork">Teamwork</SelectItem>
+                    <SelectItem value="leadership">Leadership</SelectItem>
+                    <SelectItem value="dedication">Dedication</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="message">Recognition Message</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Write a meaningful recognition message..."
+                  rows={4}
+                  className="resize-none"
+                />
+              </div>
+              <div className="p-4 border rounded-lg bg-accent/30">
+                <div className="flex items-center gap-2">
+                  <ThumbsUp className="h-5 w-5 text-primary" />
+                  <p className="text-sm">
+                    Recognition will be visible to the recipient and their manager
+                  </p>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsGiveRecognitionOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                alert("Recognition sent successfully!")
+                setIsGiveRecognitionOpen(false)
+              }}>
+                <Award className="mr-2 h-4 w-4" />
+                Send Recognition
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Schedule Interview Dialog */}
+        <Dialog open={isScheduleInterviewOpen} onOpenChange={setIsScheduleInterviewOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Schedule Interview</DialogTitle>
+              <DialogDescription>
+                Schedule an interview with a candidate
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 mt-4">
+              <div>
+                <Label htmlFor="candidate">Select Candidate</Label>
+                <Select>
+                  <SelectTrigger id="candidate">
+                    <SelectValue placeholder="Choose candidate..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cand1">John Doe - Software Engineer</SelectItem>
+                    <SelectItem value="cand2">Jane Smith - Product Designer</SelectItem>
+                    <SelectItem value="cand3">Mike Johnson - Data Analyst</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="interviewer">Select Interviewer</Label>
+                <Select>
+                  <SelectTrigger id="interviewer">
+                    <SelectValue placeholder="Choose interviewer..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="int1">Michael Chen - Engineering Lead</SelectItem>
+                    <SelectItem value="int2">Sarah Johnson - Product Manager</SelectItem>
+                    <SelectItem value="int3">Diane Young - Senior Designer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="interview-type">Interview Type</Label>
+                <Select>
+                  <SelectTrigger id="interview-type">
+                    <SelectValue placeholder="Select type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="phone">Phone Screen</SelectItem>
+                    <SelectItem value="technical">Technical Interview</SelectItem>
+                    <SelectItem value="behavioral">Behavioral Interview</SelectItem>
+                    <SelectItem value="final">Final Round</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="interview-date">Date</Label>
+                  <Input id="interview-date" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="interview-time">Time</Label>
+                  <Input id="interview-time" type="time" />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="interview-notes">Notes</Label>
+                <Textarea
+                  id="interview-notes"
+                  placeholder="Add any special instructions or notes..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsScheduleInterviewOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                alert("Interview scheduled successfully!")
+                setIsScheduleInterviewOpen(false)
+              }}>
+                <Calendar className="mr-2 h-4 w-4" />
+                Schedule Interview
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Send 360° Feedback Dialog */}
+        <Dialog open={isSend360FeedbackOpen} onOpenChange={setIsSend360FeedbackOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Send 360° Feedback Request</DialogTitle>
+              <DialogDescription>
+                Request comprehensive feedback from multiple sources
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 mt-4">
+              <div>
+                <Label htmlFor="feedback-subject">Feedback Subject</Label>
+                <Select>
+                  <SelectTrigger id="feedback-subject">
+                    <SelectValue placeholder="Select employee..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="emp1">Michael Chen</SelectItem>
+                    <SelectItem value="emp2">Sarah Johnson</SelectItem>
+                    <SelectItem value="emp3">Diane Young</SelectItem>
+                    <SelectItem value="emp4">Guy Hawkins</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Select Feedback Providers</Label>
+                <div className="space-y-2 mt-2">
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="manager" className="rounded" />
+                    <Label htmlFor="manager">Manager</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="peers" className="rounded" />
+                    <Label htmlFor="peers">Peers</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="direct-reports" className="rounded" />
+                    <Label htmlFor="direct-reports">Direct Reports</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="self" className="rounded" />
+                    <Label htmlFor="self">Self Assessment</Label>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="feedback-deadline">Deadline</Label>
+                <Input id="feedback-deadline" type="date" />
+              </div>
+              <div>
+                <Label htmlFor="feedback-instructions">Instructions</Label>
+                <Textarea
+                  id="feedback-instructions"
+                  placeholder="Provide instructions or context for feedback providers..."
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsSend360FeedbackOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                alert("360° feedback request sent successfully!")
+                setIsSend360FeedbackOpen(false)
+              }}>
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Send Request
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Approve Time Off Dialog */}
+        <Dialog open={isApproveTimeOffOpen} onOpenChange={setIsApproveTimeOffOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Approve Time Off Request</DialogTitle>
+              <DialogDescription>
+                Review and approve pending time off requests
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 mt-4">
+              <div className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="font-semibold">Michael Chen</h4>
+                    <p className="text-sm text-muted-foreground">Engineering</p>
+                  </div>
+                  <Badge>Pending</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Type</p>
+                    <p className="font-medium">Vacation</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Duration</p>
+                    <p className="font-medium">5 days</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Start Date</p>
+                    <p className="font-medium">Jan 15, 2025</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">End Date</p>
+                    <p className="font-medium">Jan 19, 2025</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Reason</p>
+                  <p className="text-sm">Family vacation to Hawaii</p>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="approval-notes">Manager Notes (Optional)</Label>
+                <Textarea
+                  id="approval-notes"
+                  placeholder="Add any notes about this approval..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsApproveTimeOffOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={() => {
+                alert("Time off request denied")
+                setIsApproveTimeOffOpen(false)
+              }}>
+                Deny
+              </Button>
+              <Button onClick={() => {
+                alert("Time off request approved successfully!")
+                setIsApproveTimeOffOpen(false)
+              }}>
+                <FileCheck className="mr-2 h-4 w-4" />
+                Approve
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Assign Training Dialog */}
+        <Dialog open={isAssignTrainingOpen} onOpenChange={setIsAssignTrainingOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Assign Training</DialogTitle>
+              <DialogDescription>
+                Assign training courses to employees
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 mt-4">
+              <div>
+                <Label htmlFor="training-employee">Select Employee</Label>
+                <Select>
+                  <SelectTrigger id="training-employee">
+                    <SelectValue placeholder="Choose employee..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="emp1">Michael Chen - Engineering</SelectItem>
+                    <SelectItem value="emp2">Sarah Johnson - Product</SelectItem>
+                    <SelectItem value="emp3">Diane Young - Design</SelectItem>
+                    <SelectItem value="emp4">Guy Hawkins - Sales</SelectItem>
+                    <SelectItem value="emp5">Robert Fox - Operations</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="training-course">Select Training Course</Label>
+                <Select>
+                  <SelectTrigger id="training-course">
+                    <SelectValue placeholder="Choose course..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="course1">Advanced React Development</SelectItem>
+                    <SelectItem value="course2">Leadership Fundamentals</SelectItem>
+                    <SelectItem value="course3">Product Management 101</SelectItem>
+                    <SelectItem value="course4">Data Analytics with Python</SelectItem>
+                    <SelectItem value="course5">Communication Skills</SelectItem>
+                    <SelectItem value="course6">Agile Methodology</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="training-priority">Priority</Label>
+                <Select>
+                  <SelectTrigger id="training-priority">
+                    <SelectValue placeholder="Select priority..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="high">High - Required</SelectItem>
+                    <SelectItem value="medium">Medium - Recommended</SelectItem>
+                    <SelectItem value="low">Low - Optional</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="training-deadline">Completion Deadline</Label>
+                <Input id="training-deadline" type="date" />
+              </div>
+              <div>
+                <Label htmlFor="training-notes">Notes for Employee</Label>
+                <Textarea
+                  id="training-notes"
+                  placeholder="Add any context or instructions for this training assignment..."
+                  rows={3}
+                />
+              </div>
+              <div className="p-4 border rounded-lg bg-accent/30">
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                  <p className="text-sm">
+                    Employee will receive email notification and calendar invite
+                  </p>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAssignTrainingOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                alert("Training assigned successfully!")
+                setIsAssignTrainingOpen(false)
+              }}>
+                <BookOpen className="mr-2 h-4 w-4" />
+                Assign Training
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

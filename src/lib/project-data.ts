@@ -10,6 +10,16 @@ export interface Task {
   deadline: string
   progress: number
   description?: string
+  milestoneId?: string
+}
+
+export interface Milestone {
+  id: string
+  name: string
+  date: string
+  status: "completed" | "in-progress" | "upcoming"
+  description?: string
+  taskIds?: string[]
 }
 
 export interface Project {
@@ -24,6 +34,8 @@ export interface Project {
   team: TeamMember[]
   files: ProjectFile[]
   activities: Activity[]
+  milestones?: Milestone[]
+  starred?: boolean
 }
 
 export interface TeamMember {
@@ -166,6 +178,32 @@ export const mockProjects: Project[] = [
         timestamp: "5 hours ago",
       },
     ],
+    milestones: [
+      {
+        id: "m1",
+        name: "Project Kickoff",
+        date: "2025-01-15",
+        status: "completed",
+        description: "Initial project setup and team alignment",
+        taskIds: ["t1"]
+      },
+      {
+        id: "m2",
+        name: "Design Phase Complete",
+        date: "2025-02-28",
+        status: "in-progress",
+        description: "All design mockups and wireframes completed",
+        taskIds: ["t2", "t3"]
+      },
+      {
+        id: "m3",
+        name: "Development Complete",
+        date: "2025-04-30",
+        status: "upcoming",
+        description: "All features implemented and tested",
+        taskIds: ["t4", "t5"]
+      },
+    ],
   },
   {
     id: "2",
@@ -175,10 +213,12 @@ export const mockProjects: Project[] = [
     deadline: "2025-04-20",
     totalTasks: 36,
     completedTasks: 15,
+    starred: false,
     tasks: [],
     team: [],
     files: [],
     activities: [],
+    milestones: [],
   },
   {
     id: "3",
@@ -188,10 +228,12 @@ export const mockProjects: Project[] = [
     deadline: "2025-02-28",
     totalTasks: 18,
     completedTasks: 14,
+    starred: true,
     tasks: [],
     team: [],
     files: [],
     activities: [],
+    milestones: [],
   },
   {
     id: "4",
@@ -201,10 +243,12 @@ export const mockProjects: Project[] = [
     deadline: "2025-05-10",
     totalTasks: 22,
     completedTasks: 6,
+    starred: false,
     tasks: [],
     team: [],
     files: [],
     activities: [],
+    milestones: [],
   },
   {
     id: "5",
@@ -214,10 +258,12 @@ export const mockProjects: Project[] = [
     deadline: "2025-02-15",
     totalTasks: 12,
     completedTasks: 11,
+    starred: true,
     tasks: [],
     team: [],
     files: [],
     activities: [],
+    milestones: [],
   },
 ]
 
@@ -251,4 +297,111 @@ export function getUpcomingDeadlines(): number {
     })
   })
   return count
+}
+
+export function updateTaskStatus(projectId: string, taskId: string, newStatus: Task["status"]): void {
+  const project = mockProjects.find(p => p.id === projectId)
+  if (!project) return
+  
+  const task = project.tasks.find(t => t.id === taskId)
+  if (!task) return
+  
+  task.status = newStatus
+  
+  // Dispatch custom event to notify other components
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('projectDataUpdated', { detail: { projectId } }))
+  }
+}
+
+export function deleteTask(projectId: string, taskId: string): void {
+  const project = mockProjects.find(p => p.id === projectId)
+  if (!project) return
+  
+  const taskIndex = project.tasks.findIndex(t => t.id === taskId)
+  if (taskIndex === -1) return
+  
+  project.tasks.splice(taskIndex, 1)
+  
+  // Update project counts
+  project.totalTasks = project.tasks.length
+  project.completedTasks = project.tasks.filter(t => t.status === 'done').length
+  
+  // Dispatch custom event to notify other components
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('projectDataUpdated', { detail: { projectId } }))
+  }
+}
+
+export function getProjectTeamMembers(projectId: string): TeamMember[] {
+  const project = mockProjects.find(p => p.id === projectId)
+  return project?.team || []
+}
+
+export function updateTask(projectId: string, taskId: string, updates: Partial<Task>): void {
+  const project = mockProjects.find(p => p.id === projectId)
+  if (!project) return
+  
+  const task = project.tasks.find(t => t.id === taskId)
+  if (!task) return
+  
+  Object.assign(task, updates)
+  
+  // Dispatch custom event to notify other components
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('projectDataUpdated', { detail: { projectId } }))
+  }
+}
+
+export function addTask(projectId: string, taskData: Omit<Task, 'id'>): Task | null {
+  console.log("[addTask] Adding task to project:", projectId, taskData)
+  
+  const project = mockProjects.find(p => p.id === projectId)
+  if (!project) {
+    console.log("[addTask] Project not found:", projectId)
+    return null
+  }
+  
+  // Generate new task ID
+  const maxId = project.tasks.reduce((max, task) => {
+    const taskNum = parseInt(task.id.replace(/\D/g, ''))
+    return taskNum > max ? taskNum : max
+  }, 0)
+  
+  const newTask: Task = {
+    ...taskData,
+    id: `t${maxId + 1}`,
+  }
+  
+  console.log("[addTask] Generated new task:", newTask)
+  
+  project.tasks.push(newTask)
+  
+  // Update project counts
+  project.totalTasks = project.tasks.length
+  project.completedTasks = project.tasks.filter(t => t.status === 'done').length
+  
+  console.log("[addTask] Project now has", project.tasks.length, "tasks")
+  
+  // Dispatch custom event to notify other components
+  if (typeof window !== 'undefined') {
+    console.log("[addTask] Dispatching projectDataUpdated event for project:", projectId)
+    window.dispatchEvent(new CustomEvent('projectDataUpdated', { detail: { projectId } }))
+  }
+  
+  return newTask
+}
+
+export function getProjectWithProgress(project: Project): Project {
+  // Calculate progress based on completed tasks
+  const completedTasks = project.tasks.filter(t => t.status === 'done').length
+  const totalTasks = project.tasks.length
+  const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+  
+  return {
+    ...project,
+    progress,
+    totalTasks,
+    completedTasks,
+  }
 }

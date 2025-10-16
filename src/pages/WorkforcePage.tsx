@@ -111,10 +111,10 @@ export default function WorkforcePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background my-28 border-0">
+    <div className="min-h-screen bg-background p-6 border-0">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-6">
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-6 px-6 mb-6">
+        <div className="py-6">
           <div className="flex items-center justify-between">
             <div>
               {/* Breadcrumb */}
@@ -156,7 +156,7 @@ export default function WorkforcePage() {
 
       {/* Admin Portal */}
       {activePortal === "admin" && (
-        <div className="container mx-auto px-4 py-8">
+        <div>
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
             <Card>
@@ -613,7 +613,7 @@ export default function WorkforcePage() {
 
       {/* Technician Portal */}
       {activePortal === "technician" && (
-        <div className="container mx-auto px-4 py-8">
+        <div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <Card>
               <CardHeader className="pb-3">

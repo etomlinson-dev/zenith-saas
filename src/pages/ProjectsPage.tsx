@@ -1,242 +1,357 @@
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, FolderKanban, ChevronRight, Kanban, Plus } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { mockProjects } from '@/lib/project-data'
-import { useState } from 'react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { CheckCircle2, Clock, AlertCircle, TrendingUp, Calendar, Users, Plus, Trash2 } from 'lucide-react'
+import { mockProjects, updateTaskStatus, type Task } from '@/lib/project-data'
 
-// Generate work items from actual project tasks
-const recentWorkItems = [
-  { id: 'WR-67', title: 'Design homepage mockup', project: 'Website Redesign', completed: true, date: 'Yesterday' },
-  { id: 'WR-78', title: 'Implement responsive navigation', project: 'Website Redesign', completed: false, date: 'Yesterday' },
-  { id: 'WR-89', title: 'Create product page templates', project: 'Website Redesign', completed: false, date: 'In the last week' },
-  { id: 'WR-45', title: 'Setup analytics tracking', project: 'Website Redesign', completed: false, date: 'In the last week' },
-  { id: 'WR-56', title: 'Optimize image loading', project: 'Website Redesign', completed: false, date: 'In the last week' },
-]
+interface WorkItem {
+  id: string
+  title: string
+  time: string
+  status: Task['status']
+  priority: 'high' | 'medium' | 'low'
+  projectId: string
+  projectName: string
+  taskId: string
+  completed: boolean
+}
+
+// Generate work items from projects
+function generateWorkItemsFromProjects(): WorkItem[] {
+  const workItems: WorkItem[] = []
+  
+  mockProjects.forEach(project => {
+    project.tasks.forEach(task => {
+      workItems.push({
+        id: `${project.id}-${task.id}`,
+        title: task.title,
+        time: 'Today',
+        status: task.status,
+        priority: task.priority,
+        projectId: project.id,
+        projectName: project.name,
+        taskId: task.id,
+        completed: task.status === 'done'
+      })
+    })
+  })
+  
+  return workItems.slice(0, 5)
+}
 
 export default function ProjectsPage() {
-  const [activeTab, setActiveTab] = useState('worked-on')
-  const [workItems, setWorkItems] = useState(recentWorkItems)
-  const assignedCount = workItems.filter(item => !item.completed).length
+  const [projects, setProjects] = useState(mockProjects)
+  const [workItems, setWorkItems] = useState<WorkItem[]>(generateWorkItemsFromProjects())
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([])
 
-  const toggleItemComplete = (itemId: string) => {
-    setWorkItems(items => 
-      items.map(item => 
-        item.id === itemId ? { ...item, completed: !item.completed } : item
-      )
+  // Listen for project data updates
+  useEffect(() => {
+    const handleProjectUpdate = () => {
+      console.log('[ProjectsPage] Project data updated, refreshing...')
+      setWorkItems(generateWorkItemsFromProjects())
+    }
+
+    window.addEventListener('projectDataUpdated', handleProjectUpdate)
+    return () => window.removeEventListener('projectDataUpdated', handleProjectUpdate)
+  }, [])
+
+  const refreshProjects = () => {
+    setProjects([...mockProjects])
+    setWorkItems(generateWorkItemsFromProjects())
+  }
+
+  const toggleProjectSelection = (projectId: string) => {
+    setSelectedProjects(prev =>
+      prev.includes(projectId)
+        ? prev.filter(id => id !== projectId)
+        : [...prev, projectId]
     )
   }
 
+  const toggleSelectAll = () => {
+    setSelectedProjects(prev =>
+      prev.length === projects.length
+        ? []
+        : projects.map(p => p.id)
+    )
+  }
+
+  const deleteSelectedProjects = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedProjects.length} project(s)?`)) {
+      // Filter out selected projects
+      const updatedProjects = projects.filter(p => !selectedProjects.includes(p.id))
+      setProjects(updatedProjects)
+      setSelectedProjects([])
+      // TODO: Update mockProjects to persist changes
+      console.log('Deleted projects:', selectedProjects)
+    }
+  }
+
+  const metrics = useMemo(() => ({
+    totalProjects: projects.length,
+    activeProjects: projects.filter(p => p.status === 'active').length,
+    completedTasks: projects.reduce((acc, p) => acc + p.completedTasks, 0),
+    totalTasks: projects.reduce((acc, p) => acc + p.totalTasks, 0),
+    teamMembers: new Set(projects.flatMap(p => p.team.map(t => t.id))).size,
+  }), [projects])
+
+  const toggleItemComplete = (projectId: string, taskId: string) => {
+    console.log('[ProjectsPage] Toggle task:', projectId, taskId)
+    
+    const project = mockProjects.find(p => p.id === projectId)
+    if (!project) return
+    
+    const task = project.tasks.find(t => t.id === taskId)
+    if (!task) return
+    
+    // Toggle between done and todo
+    const newStatus: Task['status'] = task.status === 'done' ? 'todo' : 'done'
+    updateTaskStatus(projectId, taskId, newStatus)
+    
+    // Refresh the work items
+    setWorkItems(generateWorkItemsFromProjects())
+  }
+
   return (
-    <div className="min-h-screen bg-background my-28">
-      {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              {/* Breadcrumb */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
-                <ChevronRight className="h-4 w-4" />
-                <span className="text-foreground">Project Management</span>
-              </div>
-              
-              {/* Title with Icon */}
-              <div className="flex items-center gap-3">
-                <div className="bg-primary/10 p-2.5 rounded-lg">
-                  <Kanban className="h-6 w-6 text-primary" />
-                </div>
-                <h1 className="text-3xl font-bold">Project Management</h1>
-              </div>
-              
-              <p className="text-muted-foreground mt-2">Track and manage your projects efficiently</p>
-            </div>
-            <div className="flex gap-2">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                New Project
-              </Button>
-            </div>
-          </div>
+    <div className="flex-1 space-y-4 p-4 md:p-6 pt-6 my-16">
+      <div className="flex items-center justify-between space-y-2">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Project Management</h2>
+          <p className="text-sm text-muted-foreground">
+            AI-Powered Project Execution Engine
+          </p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            New Project
+          </Button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-      {/* For You Section */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-6">For you</h2>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics.totalProjects}</div>
+            <p className="text-xs text-muted-foreground">
+              {metrics.activeProjects} active
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Task Completion</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {Math.round((metrics.completedTasks / metrics.totalTasks) * 100)}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {metrics.completedTasks} of {metrics.totalTasks} tasks
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Upcoming Deadlines</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">3</div>
+            <p className="text-xs text-muted-foreground">
+              This week
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics.teamMembers}</div>
+            <p className="text-xs text-muted-foreground">
+              Across all projects
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Recent Spaces */}
-        <div className="mb-8">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">Recent spaces</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {mockProjects.slice(0, 3).map((project) => (
-              <Card key={project.id} className="p-5 hover:shadow-lg transition-all border-border/50 hover:border-primary/30">
-                <Link to={`/projects/${project.id}`}>
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded flex items-center justify-center flex-shrink-0">
-                      <FolderKanban className="w-5 h-5 text-primary-foreground" />
+      <Tabs defaultValue="grid" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="grid">Grid View</TabsTrigger>
+          <TabsTrigger value="list">List View</TabsTrigger>
+        </TabsList>
+        <TabsContent value="grid" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <Link key={project.id} to={`/projects/${project.id}`}>
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{project.name}</CardTitle>
+                      <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
+                        {project.status}
+                      </Badge>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base truncate">{project.name}</h3>
-                      <p className="text-xs text-muted-foreground">Company-managed software</p>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-border/50 pt-4">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Quick links</p>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center justify-between hover:bg-accent/50 -mx-2 px-2 py-1 rounded transition-colors">
-                        <span className="text-foreground">My open work items</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {Math.floor(Math.random() * 5) + 1}
-                        </Badge>
+                    <CardDescription>Due {project.deadline}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Progress</span>
+                        <span className="font-medium">{project.progress}%</span>
                       </div>
-                      <div className="flex items-center justify-between hover:bg-accent/50 -mx-2 px-2 py-1 rounded transition-colors">
-                        <span className="text-foreground">Done work items</span>
+                      <div className="w-full bg-secondary rounded-full h-2">
+                        <div
+                          className="bg-primary h-2 rounded-full transition-all"
+                          style={{ width: `${project.progress}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{project.completedTasks}/{project.totalTasks} tasks</span>
+                        <span>{project.team.length} members</span>
                       </div>
                     </div>
-
-                    <div className="mt-4 pt-4 border-t border-border/50">
-                      <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                        <span>1 board</span>
-                        <ChevronDown className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </Link>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
-        </div>
-      </div>
-
-      {/* Tabs Section */}
-      <div className="mb-6">
-        <div className="flex gap-6 border-b border-border/10">
-          <button
-            onClick={() => setActiveTab('worked-on')}
-            className={`pb-3 text-sm font-medium border-b-2 -mb-[1px] transition-colors ${
-              activeTab === 'worked-on'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Worked on
-          </button>
-          <button
-            onClick={() => setActiveTab('viewed')}
-            className={`pb-3 text-sm font-medium border-b-2 -mb-[1px] transition-colors ${
-              activeTab === 'viewed'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Viewed
-          </button>
-          <button
-            onClick={() => setActiveTab('assigned')}
-            className={`pb-3 text-sm font-medium border-b-2 -mb-[1px] transition-colors ${
-              activeTab === 'assigned'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Assigned to me
-            <Badge className="ml-2 bg-primary/20 text-primary hover:bg-primary/30 text-xs">{assignedCount}</Badge>
-          </button>
-          <button
-            onClick={() => setActiveTab('starred')}
-            className={`pb-3 text-sm font-medium border-b-2 -mb-[1px] transition-colors ${
-              activeTab === 'starred'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Starred
-          </button>
-          <button
-            onClick={() => setActiveTab('boards')}
-            className={`pb-3 text-sm font-medium border-b-2 -mb-[1px] transition-colors ${
-              activeTab === 'boards'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Boards
-          </button>
-        </div>
-      </div>
-
-      {/* Work Items List */}
-      <div className="space-y-6">
-        {/* Yesterday Section */}
-        <div>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">YESTERDAY</h3>
-          <div className="space-y-1">
-            {workItems
-              .filter((item) => item.date === 'Yesterday')
-              .map((item) => (
-                <div
-                  key={item.id + item.title}
-                  className="flex items-center gap-3 px-3 py-3 hover:bg-accent rounded-lg transition-colors group border border-transparent hover:border-border/50"
-                >
-                  <Checkbox 
-                    checked={item.completed} 
-                    onCheckedChange={() => toggleItemComplete(item.id)}
-                    className="flex-shrink-0" 
-                  />
-                  <div className="flex-1 flex items-center gap-3 min-w-0">
-                    <span className="text-sm text-foreground group-hover:text-primary cursor-pointer transition-colors truncate">
-                      {item.title}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink-0">
-                    <span className="font-mono bg-muted px-2 py-1 rounded">{item.id}</span>
-                    <span>•</span>
-                    <span>{item.project}</span>
+        </TabsContent>
+        <TabsContent value="list" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <CardTitle>All Projects</CardTitle>
+                  {selectedProjects.length > 0 && (
+                    <Badge variant="secondary">
+                      {selectedProjects.length} selected
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedProjects.length > 0 && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={deleteSelectedProjects}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete {selectedProjects.length === 1 ? 'Project' : `${selectedProjects.length} Projects`}
+                    </Button>
+                  )}
+                  <div className="flex items-center gap-2 border rounded-md px-3 py-2">
+                    <Checkbox
+                      checked={selectedProjects.length === projects.length && projects.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                      id="select-all"
+                    />
+                    <label htmlFor="select-all" className="text-sm cursor-pointer">
+                      Select All
+                    </label>
                   </div>
                 </div>
-              ))}
-          </div>
-        </div>
-
-        {/* In the Last Week Section */}
-        <div>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">IN THE LAST WEEK</h3>
-          <div className="space-y-1">
-            {workItems
-              .filter((item) => item.date === 'In the last week')
-              .map((item, idx) => (
-                <div
-                  key={item.id + item.title + idx}
-                  className="flex items-center gap-3 px-3 py-3 hover:bg-accent rounded-lg transition-colors group border border-transparent hover:border-border/50"
-                >
-                  <Checkbox 
-                    checked={item.completed} 
-                    onCheckedChange={() => toggleItemComplete(item.id)}
-                    className="flex-shrink-0" 
-                  />
-                  <div className="flex-1 flex items-center gap-3 min-w-0">
-                    <span className="text-sm text-foreground group-hover:text-primary cursor-pointer transition-colors truncate">
-                      {item.title}
-                    </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {projects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <Checkbox
+                      checked={selectedProjects.includes(project.id)}
+                      onCheckedChange={() => toggleProjectSelection(project.id)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <Link to={`/projects/${project.id}`} className="flex-1 flex items-center justify-between cursor-pointer">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-semibold">{project.name}</h3>
+                          <Badge variant={project.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                            {project.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                          <span>Due {project.deadline}</span>
+                          <span>{project.completedTasks}/{project.totalTasks} tasks</span>
+                          <span>{project.team.length} members</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-2xl font-bold">{project.progress}%</div>
+                          <div className="text-xs text-muted-foreground">Complete</div>
+                        </div>
+                      </div>
+                    </Link>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink-0">
-                    <span className="font-mono bg-muted px-2 py-1 rounded">{item.id}</span>
-                    <span>•</span>
-                    <span>{item.project}</span>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Latest updates across your projects</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {workItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div
+                    className={`h-2 w-2 rounded-full ${
+                      item.priority === 'high'
+                        ? 'bg-red-500'
+                        : item.priority === 'medium'
+                        ? 'bg-yellow-500'
+                        : 'bg-green-500'
+                    }`}
+                  />
+                  <div>
+                    <p className="text-sm font-medium leading-none">{item.title}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {item.projectName} • {item.time}
+                    </p>
                   </div>
                 </div>
-              ))}
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="capitalize">
+                    {item.status.replace('-', ' ')}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleItemComplete(item.projectId, item.taskId)}
+                  >
+                    {item.completed ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Clock className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
-
