@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertTriangle, CheckCircle2, Download, RefreshCw, Plus, Clock, Zap, BarChart3, Package } from "lucide-react"
+import { AlertTriangle, CheckCircle2, Download, RefreshCw, Plus, Clock, Zap, BarChart3, Package, ChevronRight, Cpu } from "lucide-react"
 
 export default function ManufacturingPage() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -119,31 +119,49 @@ export default function ManufacturingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6 my-28">
+    <div className="min-h-screen bg-background p-6">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <h1 className="text-3xl font-bold">Manufacturing Operations</h1>
-            <p className="text-sm text-muted-foreground">Z-MO Plant Overview</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Download CSV
-            </Button>
-            <Button variant="outline" size="sm">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Machine
-            </Button>
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-6 px-6 mb-6">
+        <div className="py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
+                <ChevronRight className="h-4 w-4" />
+                <span className="text-foreground">Manufacturing Operations</span>
+              </div>
+              
+              {/* Title with Icon */}
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2.5 rounded-lg">
+                  <Cpu className="h-6 w-6 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold">Manufacturing Operations</h1>
+              </div>
+              
+              <p className="text-muted-foreground mt-2">Z-MO - Smart factory operations</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Download CSV
+              </Button>
+              <Button variant="outline">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Machine
+              </Button>
+            </div>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">Zenith Hub &gt; Manufacturing Operations</p>
       </div>
+
+      {/* Main Content */}
+      <div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -404,6 +422,7 @@ export default function ManufacturingPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   )
 }

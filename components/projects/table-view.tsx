@@ -52,28 +52,28 @@ export function TableView({ project }: TableViewProps) {
   const getPriorityColor = (priority: Task["priority"]) => {
     switch (priority) {
       case "high":
-        return "border-red-500/50 text-red-500 bg-red-500/10"
+        return "border-red-500 text-red-600 bg-red-500/20 dark:text-red-400"
       case "medium":
-        return "border-yellow-500/50 text-yellow-500 bg-yellow-500/10"
+        return "border-yellow-500 text-yellow-600 bg-yellow-500/20 dark:text-yellow-400"
       case "low":
-        return "border-green-500/50 text-green-500 bg-green-500/10"
+        return "border-green-500 text-green-600 bg-green-500/20 dark:text-green-400"
     }
   }
 
   const getStatusColor = (status: Task["status"]) => {
     switch (status) {
       case "backlog":
-        return "border-muted-foreground/50 text-muted-foreground bg-muted"
+        return "border-muted-foreground text-muted-foreground bg-muted/80"
       case "todo":
-        return "border-blue-500/50 text-blue-500 bg-blue-500/10"
+        return "border-blue-500 text-blue-600 bg-blue-500/20 dark:text-blue-400"
       case "in-progress":
-        return "border-yellow-500/50 text-yellow-500 bg-yellow-500/10"
+        return "border-yellow-500 text-yellow-600 bg-yellow-500/20 dark:text-yellow-400"
       case "review":
-        return "border-purple-500/50 text-purple-500 bg-purple-500/10"
+        return "border-purple-500 text-purple-600 bg-purple-500/20 dark:text-purple-400"
       case "blocked":
-        return "border-red-500/50 text-red-500 bg-red-500/10"
+        return "border-red-500 text-red-600 bg-red-500/20 dark:text-red-400"
       case "done":
-        return "border-green-500/50 text-green-500 bg-green-500/10"
+        return "border-green-500 text-green-600 bg-green-500/20 dark:text-green-400"
     }
   }
 

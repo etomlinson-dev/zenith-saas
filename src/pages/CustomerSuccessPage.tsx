@@ -33,6 +33,7 @@ import {
   User,
   FileText,
   Clock,
+  ChevronRight,
 } from "lucide-react"
 
 export default function CustomerSuccessPage() {
@@ -198,31 +199,49 @@ export default function CustomerSuccessPage() {
   const highChurnRiskCount = clients.filter((c) => c.churnRisk > 60).length
 
   return (
-    <div className="min-h-screen bg-background p-6 my-24">
+    <div className="min-h-screen bg-background p-6">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <h1 className="text-3xl font-bold">Customer Success Platform</h1>
-            <p className="text-muted-foreground">Zenith Success</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              New Client
-            </Button>
-            <Button variant="outline" size="sm">
-              <Mail className="w-4 h-4 mr-2" />
-              Send Email
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Export Data
-            </Button>
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-6 px-6 mb-6">
+        <div className="py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
+                <ChevronRight className="h-4 w-4" />
+                <span className="text-foreground">Customer Success Platform</span>
+              </div>
+              
+              {/* Title with Icon */}
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2.5 rounded-lg">
+                  <Users className="h-6 w-6 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold">Customer Success Platform</h1>
+              </div>
+              
+              <p className="text-muted-foreground mt-2">Zenith Success - Proactive customer engagement</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Plus className="w-4 h-4 mr-2" />
+                New Client
+              </Button>
+              <Button variant="outline">
+                <Mail className="w-4 h-4 mr-2" />
+                Send Email
+              </Button>
+              <Button variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export Data
+              </Button>
+            </div>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">Zenith Hub &gt; Customer Success Platform</p>
       </div>
+
+      {/* Main Content */}
+      <div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card>
@@ -1428,6 +1447,7 @@ export default function CustomerSuccessPage() {
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   )
 }

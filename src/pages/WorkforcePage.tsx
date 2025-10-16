@@ -111,19 +111,28 @@ export default function WorkforcePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background my-24 border-0">
+    <div className="min-h-screen bg-background p-6 border-0">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-6">
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-6 px-6 mb-6">
+        <div className="py-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <span>Zenith Hub</span>
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
                 <ChevronRight className="h-4 w-4" />
-                <span>Workflow Management</span>
+                <span className="text-foreground">Workforce Management</span>
               </div>
-              <h1 className="text-3xl font-bold">Workflow Management</h1>
-              <p className="text-muted-foreground">TaskBeacon</p>
+              
+              {/* Title with Icon */}
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2.5 rounded-lg">
+                  <MapPin className="h-6 w-6 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold">Workforce Management</h1>
+              </div>
+              
+              <p className="text-muted-foreground mt-2">TaskBeacon - Field service management</p>
             </div>
             <div className="flex gap-3">
               <Button
@@ -147,7 +156,7 @@ export default function WorkforcePage() {
 
       {/* Admin Portal */}
       {activePortal === "admin" && (
-        <div className="container mx-auto px-4 py-8">
+        <div>
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
             <Card>
@@ -604,7 +613,7 @@ export default function WorkforcePage() {
 
       {/* Technician Portal */}
       {activePortal === "technician" && (
-        <div className="container mx-auto px-4 py-8">
+        <div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <Card>
               <CardHeader className="pb-3">

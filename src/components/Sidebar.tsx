@@ -10,6 +10,8 @@ import {
   Bot,
   ChevronLeft,
   ChevronRight,
+  User,
+  Briefcase,
 } from 'lucide-react'
 
 const navItems = [
@@ -19,6 +21,8 @@ const navItems = [
   { path: '/customer-success', label: 'CSP', icon: Users },
   { path: '/workforce', label: 'WFM', icon: MapPin },
   { path: '/hr', label: 'HR', icon: UserCog },
+  { path: '/employee', label: 'Employee Portal', icon: User },
+  { path: '/careers', label: 'Careers', icon: Briefcase },
   { path: '/manufacturing', label: 'Z-MO', icon: Cpu },
   { path: '/automation', label: 'Automation', icon: Bot },
 ]

@@ -1,16 +1,84 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import type { Project } from "@/lib/project-data"
-import { Plus, ZoomIn, ZoomOut } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import type { Project, Milestone } from "@/lib/project-data"
+import { addMilestone, getProjectMilestones } from "@/lib/project-data-milestones"
+import { Plus } from "lucide-react"
 
 interface TimelineViewProps {
   project: Project
 }
 
 export function TimelineView({ project }: TimelineViewProps) {
+  // State for milestones - load from project data
+  const [milestones, setMilestones] = useState<Milestone[]>(project.milestones || [])
+  
+  // Dialog state
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [newMilestone, setNewMilestone] = useState<Omit<Milestone, 'id'>>({
+    name: "",
+    date: "",
+    status: "upcoming",
+    description: "",
+    taskIds: []
+  })
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([])
+
+  // Load milestones from project
+  useEffect(() => {
+    const projectMilestones = getProjectMilestones(project.id)
+    setMilestones(projectMilestones)
+  }, [project.id])
+
+  // Listen for project updates
+  useEffect(() => {
+    const handleProjectUpdate = (event: CustomEvent) => {
+      if (event.detail.projectId === project.id) {
+        const projectMilestones = getProjectMilestones(project.id)
+        setMilestones(projectMilestones)
+      }
+    }
+
+    window.addEventListener('projectDataUpdated', handleProjectUpdate as EventListener)
+    return () => window.removeEventListener('projectDataUpdated', handleProjectUpdate as EventListener)
+  }, [project.id])
+
+  // Handle add milestone
+  const handleAddMilestone = () => {
+    if (newMilestone.name && newMilestone.date) {
+      const milestoneToAdd = {
+        ...newMilestone,
+        taskIds: selectedTasks
+      }
+
+      const added = addMilestone(project.id, milestoneToAdd)
+      if (added) {
+        setNewMilestone({ name: "", date: "", status: "upcoming", description: "", taskIds: [] })
+        setSelectedTasks([])
+        setIsDialogOpen(false)
+      }
+    }
+  }
+
+  // Toggle task selection
+  const toggleTaskSelection = (taskId: string) => {
+    setSelectedTasks(prev => 
+      prev.includes(taskId) 
+        ? prev.filter(id => id !== taskId)
+        : [...prev, taskId]
+    )
+  }
+  
   // Generate timeline data
   const timelineMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
 
@@ -33,13 +101,7 @@ export function TimelineView({ project }: TimelineViewProps) {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-foreground">Project Timeline</h2>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <ZoomOut className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="sm">
-              <ZoomIn className="w-4 h-4" />
-            </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => setIsDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add Milestone
             </Button>
@@ -105,12 +167,12 @@ export function TimelineView({ project }: TimelineViewProps) {
                                 transition-all hover:scale-105 hover:shadow-lg group
                                 ${
                                   task.status === "done"
-                                    ? "bg-green-500/80"
-                                    : task.status === "in-progress"
-                                      ? "bg-yellow-500/80"
+                                    ? "bg-green-600"
+                                  : task.status === "in-progress"
+                                      ? "bg-yellow-600"
                                       : task.status === "blocked"
-                                        ? "bg-red-500/80"
-                                        : "bg-blue-500/80"
+                                        ? "bg-red-600"
+                                        : "bg-blue-600"
                                 }
                               `}
                               style={{
@@ -128,10 +190,10 @@ export function TimelineView({ project }: TimelineViewProps) {
                                       variant="outline"
                                       className={`text-xs ${
                                         task.priority === "high"
-                                          ? "border-red-500/50 text-red-500"
-                                          : task.priority === "medium"
-                                            ? "border-yellow-500/50 text-yellow-500"
-                                            : "border-green-500/50 text-green-500"
+                                          ? "border-red-500 text-red-600 bg-red-500/20 dark:text-red-400"
+                                        : task.priority === "medium"
+                                            ? "border-yellow-500 text-yellow-600 bg-yellow-500/20 dark:text-yellow-400"
+                                            : "border-green-500 text-green-600 bg-green-500/20 dark:text-green-400"
                                       }`}
                                     >
                                       {task.priority}
@@ -159,13 +221,7 @@ export function TimelineView({ project }: TimelineViewProps) {
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4 text-foreground">Project Milestones</h3>
         <div className="space-y-4">
-          {[
-            { name: "Project Kickoff", date: "2025-01-15", status: "completed" },
-            { name: "Design Phase Complete", date: "2025-02-28", status: "in-progress" },
-            { name: "Development Complete", date: "2025-04-30", status: "upcoming" },
-            { name: "Testing & QA", date: "2025-05-31", status: "upcoming" },
-            { name: "Launch", date: "2025-06-15", status: "upcoming" },
-          ].map((milestone, i) => (
+          {milestones && milestones.length > 0 ? milestones.map((milestone, i) => (
             <div
               key={i}
               className="flex items-center gap-4 p-4 rounded-lg border border-border/40 hover:border-primary/40 hover:bg-muted/20 transition-all"
@@ -175,10 +231,10 @@ export function TimelineView({ project }: TimelineViewProps) {
                   w-12 h-12 rounded-full flex items-center justify-center font-bold
                   ${
                     milestone.status === "completed"
-                      ? "bg-green-500/20 text-green-500"
-                      : milestone.status === "in-progress"
-                        ? "bg-yellow-500/20 text-yellow-500"
-                        : "bg-blue-500/20 text-blue-500"
+                      ? "bg-green-500/20 text-green-600 dark:text-green-400"
+                    : milestone.status === "in-progress"
+                        ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+                        : "bg-blue-500/20 text-blue-600 dark:text-blue-400"
                   }
                 `}
               >
@@ -187,23 +243,166 @@ export function TimelineView({ project }: TimelineViewProps) {
               <div className="flex-1">
                 <p className="font-semibold text-foreground">{milestone.name}</p>
                 <p className="text-sm text-muted-foreground">{milestone.date}</p>
+                {milestone.taskIds && milestone.taskIds.length > 0 && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs text-muted-foreground">
+                      {milestone.taskIds.length} task{milestone.taskIds.length > 1 ? 's' : ''} assigned
+                    </span>
+                  </div>
+                )}
+                {milestone.description && (
+                  <p className="text-xs text-muted-foreground mt-1">{milestone.description}</p>
+                )}
               </div>
               <Badge
                 variant="outline"
                 className={`${
                   milestone.status === "completed"
-                    ? "border-green-500/50 text-green-500"
+                    ? "border-green-500 text-green-600 bg-green-500/20 dark:text-green-400"
                     : milestone.status === "in-progress"
-                      ? "border-yellow-500/50 text-yellow-500"
-                      : "border-blue-500/50 text-blue-500"
+                      ? "border-yellow-500 text-yellow-600 bg-yellow-500/20 dark:text-yellow-400"
+                      : "border-blue-500 text-blue-600 bg-blue-500/20 dark:text-blue-400"
                 }`}
               >
                 {milestone.status}
               </Badge>
             </div>
-          ))}
+          )) : (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              No milestones yet. Click "Add Milestone" to create one.
+            </p>
+          )}
         </div>
       </Card>
+
+      {/* Add Milestone Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Milestone</DialogTitle>
+            <DialogDescription>
+              Create a new milestone to track key project deliverables and achievements.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="milestone-project">Project</Label>
+              <Input
+                id="milestone-project"
+                value={project.name}
+                disabled
+                className="bg-muted"
+              />
+              <p className="text-xs text-muted-foreground">Milestone will be added to this project</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="milestone-name">Milestone Name *</Label>
+              <Input
+                id="milestone-name"
+                placeholder="e.g., Beta Launch"
+                value={newMilestone.name}
+                onChange={(e) => setNewMilestone({ ...newMilestone, name: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="milestone-description">Description</Label>
+              <Textarea
+                id="milestone-description"
+                placeholder="Describe what this milestone represents..."
+                value={newMilestone.description}
+                onChange={(e) => setNewMilestone({ ...newMilestone, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="milestone-date">Target Date *</Label>
+                <Input
+                  id="milestone-date"
+                  type="date"
+                  value={newMilestone.date}
+                  onChange={(e) => setNewMilestone({ ...newMilestone, date: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="milestone-status">Status</Label>
+                <Select 
+                  value={newMilestone.status} 
+                  onValueChange={(value: "completed" | "in-progress" | "upcoming") => 
+                    setNewMilestone({ ...newMilestone, status: value })
+                  }
+                >
+                  <SelectTrigger id="milestone-status">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                    <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Assign Tasks to Milestone</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Select which tasks are part of this milestone
+              </p>
+              <ScrollArea className="h-48 border rounded-md p-3">
+                {project.tasks.length > 0 ? (
+                  <div className="space-y-2">
+                    {project.tasks.map((task) => (
+                      <div key={task.id} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md">
+                        <Checkbox
+                          id={`task-${task.id}`}
+                          checked={selectedTasks.includes(task.id)}
+                          onCheckedChange={() => toggleTaskSelection(task.id)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <label
+                            htmlFor={`task-${task.id}`}
+                            className="text-sm font-medium leading-none cursor-pointer"
+                          >
+                            {task.title}
+                          </label>
+                          <p className="text-xs text-muted-foreground">
+                            {task.assignee.name} • {task.status}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {task.priority}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No tasks available in this project
+                  </p>
+                )}
+              </ScrollArea>
+              <p className="text-xs text-muted-foreground mt-2">
+                {selectedTasks.length} task{selectedTasks.length !== 1 ? 's' : ''} selected
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddMilestone} disabled={!newMilestone.name || !newMilestone.date}>
+              Add Milestone
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

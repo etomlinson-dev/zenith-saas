@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -7,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Search, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react"
 import { purchaseOrders } from "@/lib/inventory-data"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 
 export function PurchaseOrdersList() {
   const [searchQuery, setSearchQuery] = useState("")

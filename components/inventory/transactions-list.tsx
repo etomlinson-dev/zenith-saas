@@ -1,12 +1,10 @@
-"use client"
-
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from "lucide-react"
 import { transactions } from "@/lib/inventory-data"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 
 export function TransactionsList() {
   const [currentPage, setCurrentPage] = useState(1)

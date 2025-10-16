@@ -1,12 +1,10 @@
-"use client"
-
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { ArrowLeft, Edit, Check, X, FileText, Calendar, DollarSign, Package } from "lucide-react"
 import { purchaseOrders } from "@/lib/inventory-data"
-import Link from "next/link"
+import { Link } from "react-router-dom"
 
 interface PurchaseOrderDetailProps {
   poId: string

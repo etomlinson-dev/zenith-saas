@@ -3,7 +3,7 @@
 import type React from "react"
 import { useMemo, useRef } from "react"
 import { cn } from "@/lib/utils"
-import { useDimensions } from "@/components/hooks/use-debounced-dimensions"
+import { useDimensions } from "@/hooks/use-debounced-dimensions"
 
 interface AnimatedGradientProps {
   colors: string[]

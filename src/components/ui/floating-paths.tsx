@@ -46,7 +46,7 @@ function FloatingPaths({ position }: { position: number }) {
         ))}
       </svg>
 
-      <style jsx>{`
+      <style>{`
         ${paths
           .map(
             (path) => `
@@ -107,7 +107,7 @@ function FlippedFloatingPaths({ position }: { position: number }) {
         ))}
       </svg>
 
-      <style jsx>{`
+      <style>{`
         ${paths
           .map(
             (path) => `

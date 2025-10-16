@@ -51,19 +51,41 @@ export default function InventoryPage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header Section */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Home</span>
-            <ChevronRight className="w-4 h-4" />
-            <span className="text-foreground">Inventory Management</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Box className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold">Inventory Management</h1>
+      {/* Header */}
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-6 px-6 mb-6">
+        <div className="py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
+                <ChevronRight className="h-4 w-4" />
+                <span className="text-foreground">Inventory Management</span>
+              </div>
+              
+              {/* Title with Icon */}
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2.5 rounded-lg">
+                  <Box className="h-6 w-6 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold">Inventory Management</h1>
+              </div>
+              
+              <p className="text-muted-foreground mt-2">Real-time stock management and tracking</p>
+            </div>
+            <div className="flex gap-2">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                New Item
+              </Button>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div>
+        <div className="space-y-6">
 
         {/* KPI Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -235,6 +257,7 @@ export default function InventoryPage() {
             </div>
           </div>
         </Card>
+        </div>
       </div>
     </div>
   )

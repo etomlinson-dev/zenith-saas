@@ -47,7 +47,7 @@ export function PurchaseOrdersList() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/inventory">
+            <Link to="/inventory">
               <Button variant="ghost" size="icon">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -107,7 +107,7 @@ export function PurchaseOrdersList() {
                       <td className="p-4 text-sm">{po.createdDate.toLocaleDateString()}</td>
                       <td className="p-4 text-sm">{po.expectedDate ? po.expectedDate.toLocaleDateString() : "-"}</td>
                       <td className="p-4">
-                        <Link href={`/inventory/purchase-orders/${po.id}`}>
+                        <Link to={`/inventory/purchase-orders/${po.id}`}>
                           <Button variant="ghost" size="sm">
                             View
                           </Button>

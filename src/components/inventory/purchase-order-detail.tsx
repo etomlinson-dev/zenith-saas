@@ -52,7 +52,7 @@ export function PurchaseOrderDetail({ poId }: PurchaseOrderDetailProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/inventory/purchase-orders">
+            <Link to="/inventory/purchase-orders">
               <Button variant="ghost" size="icon">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
