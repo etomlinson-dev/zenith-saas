@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { Header } from './components/Header'
@@ -30,15 +30,21 @@ import JobApplicationsPage from './pages/employee/JobApplicationsPage'
 
 function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const location = useLocation()
+  
+  // Only show sidebar and header when not on landing page
+  const isLandingPage = location.pathname === '/'
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Sidebar 
-        isCollapsed={isSidebarCollapsed} 
-        setIsCollapsed={setIsSidebarCollapsed} 
-      />
-      <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'}`}>
-        <Header />
+      {!isLandingPage && (
+        <Sidebar 
+          isCollapsed={isSidebarCollapsed} 
+          setIsCollapsed={setIsSidebarCollapsed} 
+        />
+      )}
+      <div className={`transition-all duration-300 ${!isLandingPage && (isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72')}`}>
+        {!isLandingPage && <Header />}
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/hub" element={<HubPage />} />
